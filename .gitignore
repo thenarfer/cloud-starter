@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+override.tf
+override.tf.json
+
+# Docker
+*.log
+
+# Ignore editor/workspace settings
+.vscode/
+
+# Local environment files
+.env
+.env.*.local
+
+# Python/test caches and coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# MyPy / build artifacts
+.mypy_cache/
+pip-wheel-metadata/
+build/
+dist/
+
+# JetBrains
+.idea/
+*.iml
