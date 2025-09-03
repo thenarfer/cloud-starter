@@ -15,8 +15,8 @@ jobs:
       - name: Install deps if present
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f app/requirements.txt ]; then pip install -r app/requirements.txt; fi
+          if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
       - name: Quick syntax checks
         run: |
-          if [ -f app/main.py ]; then python -m py_compile app/main.py; fi
+          if [ -f src/main.py ]; then python -m py_compile src/main.py; fi
           if [ -f ./spin ]; then chmod +x ./spin; ./spin --help; fi
