@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloud-starter"
+description = "Learning project: minimal spin CLI with up|status|down (dry-run)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Marius Trovik" }]
+keywords = ["cli", "aws", "learning", "cloud"]
+# No runtime deps yet; boto3 will come in #3.
+dependencies = []
+
+# We'll keep version in code:
+dynamic = ["version"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+cloud_starter = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+spin = "cloud_starter.cli:main"
+

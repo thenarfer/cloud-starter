@@ -3,7 +3,6 @@ on:
   pull_request:
   push:
     branches: [ main ]
-
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -12,11 +11,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install deps if present
+      - name: Install (editable)
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
-      - name: Quick syntax checks
+          python -m pip install -U pip
+          pip install -e .
+      - name: CLI smoke
         run: |
-          if [ -f src/main.py ]; then python -m py_compile src/main.py; fi
-          if [ -f ./spin ]; then chmod +x ./spin; ./spin --help; fi
+          spin --help
