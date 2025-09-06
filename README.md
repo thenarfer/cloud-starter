@@ -44,6 +44,13 @@ A transparent learning project to practice Product Ownership and disciplined del
 
 ---
 
+## Run tests
+```
+pytest -q
+```
+
+---
+
 ## Quick start (dev)
 
 Create a venv and install in editable mode:
@@ -102,5 +109,16 @@ pytest -q
 
 ## Roadmap (high level)
 
+<<<<<<< HEAD
 * **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model, safety interlock
 * **Next:** wire minimal AWS calls in `eu-north-1`; `status` lists instances; safe `down` flow
+=======
+* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model
+* **Next:** wire minimal AWS calls in `eu-north-1` using the tag schema; `status` lists instances; safe `down`
+
+---
+
+## License
+
+MIT
+>>>>>>> 73b401f (test: add minimal pytest for spin CLI and wire CI (DoD: AC verifiable))
