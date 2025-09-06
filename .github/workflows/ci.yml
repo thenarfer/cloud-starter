@@ -16,20 +16,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-<<<<<<< HEAD
 
       - name: Install (editable) + test deps
         run: |
           python -m pip install -U pip
           pip install -e ".[test]"
 
-=======
-      - name: Install (editable) + test deps
-        run: |
-          python -m pip install -U pip
-          pip install -e .[test]
-      - name: CLI smoke
-        run: spin --help
->>>>>>> 73b401f (test: add minimal pytest for spin CLI and wire CI (DoD: AC verifiable))
       - name: Run tests
         run: pytest -q
