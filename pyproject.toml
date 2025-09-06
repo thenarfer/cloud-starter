@@ -28,3 +28,5 @@ where = ["src"]
 [project.scripts]
 spin = "cloud_starter.cli:main"
 
+[project.optional-dependencies]
+test = ["pytest>=8"]

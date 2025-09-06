@@ -3,6 +3,7 @@ on:
   pull_request:
   push:
     branches: [ main ]
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -11,10 +12,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install (editable)
+      - name: Install (editable) + test deps
         run: |
           python -m pip install -U pip
-          pip install -e .
+          pip install -e .[test]
       - name: CLI smoke
-        run: |
-          spin --help
+        run: spin --help
+      - name: Run tests
+        run: pytest -q

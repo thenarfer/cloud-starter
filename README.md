@@ -1,6 +1,3 @@
-Here’s a clean, copy-paste **README.md** that matches your Sprint-2 plan (installable CLI, dry-run commands, tag model defined; no real cloud calls yet).
-
-````markdown
 # Cloud Starter
 
 A transparent learning project to practice Product Ownership and disciplined delivery.
@@ -37,6 +34,13 @@ A transparent learning project to practice Product Ownership and disciplined del
 - Python **>= 3.11**
 - (For later sprints) AWS credentials & region configured (`AWS_PROFILE` or envs / `~/.aws`)
 - Default region used by `spin`: **eu-north-1** (override with `--region` or `SPIN_REGION`)
+
+---
+
+## Run tests
+```
+pytest -q
+```
 
 ---
 
@@ -95,8 +99,3 @@ spin down
 ## License
 
 MIT
-
-```
-
-If you want, I can also add a tiny **“Tags”** section (`docs/tags.md`) and link it from this README; or keep the short tag list here and expand later when you start real AWS calls.
-```
