@@ -9,44 +9,44 @@ A transparent learning project to practice Product Ownership and disciplined del
 ## Sprint 2 — MVP
 
 **Sprint Goal:** Deliver an **installable `spin` CLI** (`pip install -e .`) that exposes  
-`up | status | down` (dry-run only) and define a deterministic tag model for upcoming AWS calls.
+`up | status | down` with **dry-run by default**, plus a deterministic tag model for upcoming AWS calls.
 
-**Scope (this sprint)**
-- Single provider: **AWS** (no live API calls yet)
-- Commands: `spin up --count X`, `spin status`, `spin down` (all **dry-run** output)
+> **Safety model**
+> - All commands are **dry-run** unless you pass `--apply` **and** set `SPIN_LIVE=1`.
+> - Live operations are **owner-scoped** and **tag-scoped** to prevent touching unmanaged resources.
+
+### Scope (this sprint)
+- Single provider: **AWS**
+- Commands: `spin up --count X`, `spin status`, `spin down`  
+  (dry-run output by default; no AWS calls unless `SPIN_LIVE=1` + `--apply`)
 - Deterministic tags for future resources:
   - `Project=cloud-starter`
   - `ManagedBy=spin`
-  - `Owner=<github-handle>`
+  - `Owner=<github-handle>`  *(required via `SPIN_OWNER`)*
   - `SpinGroup=<id>`
 
-**Non-goals (not in this sprint)**
+### Non-goals (not in this sprint)
 - Multi-cloud (Azure/GCP), Terraform/IaC
 - SSH/provisioners, IAM hardening
 - Autoscaling, budgets/policies beyond basic teardown
 - Monitoring/alerts
-- Real instance lifecycle (that starts next)
+- Real instance lifecycle improvements (start next)
 
 ---
 
 ## Prerequisites
 
 - Python **>= 3.11**
-- (For later sprints) AWS credentials & region configured (`AWS_PROFILE` or envs / `~/.aws`)
-- Default region used by `spin`: **eu-north-1** (override with `--region` or `SPIN_REGION`)
-
----
-
-## Run tests
-```
-pytest -q
-```
+- `SPIN_OWNER` **must** be set (your handle/email).  
+- For **live** operations only (not required for dry-run):
+  - AWS credentials & region (`AWS_PROFILE` / envs / `~/.aws`)
+  - Default region is **eu-north-1** (override with `--region` or `SPIN_REGION`)
 
 ---
 
 ## Quick start (dev)
 
-Install in a virtual environment using editable mode:
+Create a venv and install in editable mode:
 
 ```bash
 python -m venv .venv
@@ -57,23 +57,34 @@ python -m pip install -U pip
 pip install -e .
 ````
 
-Verify the CLI and try the dry-run commands:
+Verify the CLI and dry-run behavior:
 
 ```bash
+export SPIN_OWNER=@you
 spin --help
 spin up --count 2
 spin status
 spin down
 ```
 
-**Notes**
+Live operations (only when you really mean it):
 
-* All commands are **dry-run** in Sprint 2 (they print what would happen).
-* Environment overrides:
+```bash
+# Requires AWS creds + region configured
+export SPIN_OWNER=@you
+export SPIN_LIVE=1
+spin up --count 1 --apply
+spin status
+spin down --group <the-group-from-up> --apply
+```
 
-  * `SPIN_REGION` (default `eu-north-1`)
-  * `AWS_PROFILE` (optional; used in later sprints)
-  * `SPIN_GROUP` (default `dev`) — used in tags to group resources
+---
+
+## Run tests
+
+```bash
+pytest -q
+```
 
 ---
 
@@ -91,11 +102,5 @@ spin down
 
 ## Roadmap (high level)
 
-* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model
-* **Next:** wire minimal AWS calls in `eu-north-1` using the tag schema; `status` lists instances; safe `down`
-
----
-
-## License
-
-MIT
+* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model, safety interlock
+* **Next:** wire minimal AWS calls in `eu-north-1`; `status` lists instances; safe `down` flow
