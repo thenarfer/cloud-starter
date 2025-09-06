@@ -1,28 +1,26 @@
 # Cloud Starter
 
-A transparent learning project to practice Product Ownership and disciplined delivery.
-
+A transparent learning project to practice Product Ownership and disciplined delivery.  
 **Product Goal:** Enable developers to self-serve a few on-demand servers for tests within minutes.
 
 ---
 
 ## Sprint 2 — MVP
 
-**Sprint Goal:** Deliver an **installable `spin` CLI** (`pip install -e .`) that exposes  
-`up | status | down` with **dry-run by default**, plus a deterministic tag model for upcoming AWS calls.
+**Sprint Goal:** Deliver an **installable `spin` CLI** (`pip install -e .`) that exposes `up | status | down`.  
+By default the CLI is **dry-run** and **does not contact AWS**. Live calls only happen if **both**:
+1) you pass `--apply`, **and**
+2) the environment has `SPIN_LIVE=1`.
 
-> **Safety model**
-> - All commands are **dry-run** unless you pass `--apply` **and** set `SPIN_LIVE=1`.
-> - Live operations are **owner-scoped** and **tag-scoped** to prevent touching unmanaged resources.
+This gives us a safe “seatbelt” while we learn.
 
 ### Scope (this sprint)
 - Single provider: **AWS**
-- Commands: `spin up --count X`, `spin status`, `spin down`  
-  (dry-run output by default; no AWS calls unless `SPIN_LIVE=1` + `--apply`)
-- Deterministic tags for future resources:
+- Commands: `spin up --count X`, `spin status`, `spin down`
+- Deterministic tag model for future resources:
   - `Project=cloud-starter`
   - `ManagedBy=spin`
-  - `Owner=<github-handle>`  *(required via `SPIN_OWNER`)*
+  - `Owner=<your-handle>` (required)
   - `SpinGroup=<id>`
 
 ### Non-goals (not in this sprint)
@@ -30,30 +28,20 @@ A transparent learning project to practice Product Ownership and disciplined del
 - SSH/provisioners, IAM hardening
 - Autoscaling, budgets/policies beyond basic teardown
 - Monitoring/alerts
-- Real instance lifecycle improvements (start next)
+- Real instance lifecycle beyond the minimal demo
 
 ---
 
 ## Prerequisites
 
 - Python **>= 3.11**
-- `SPIN_OWNER` **must** be set (your handle/email).  
-- For **live** operations only (not required for dry-run):
-  - AWS credentials & region (`AWS_PROFILE` / envs / `~/.aws`)
-  - Default region is **eu-north-1** (override with `--region` or `SPIN_REGION`)
-
----
-
-## Run tests
-```
-pytest -q
-```
+- **Owner is required:** set `SPIN_OWNER` to your handle/email
+- Default region: **eu-north-1** (override with `SPIN_REGION` or `--region`)
+- For live calls (later): configure AWS credentials (`AWS_PROFILE` or `~/.aws`)
 
 ---
 
 ## Quick start (dev)
-
-Create a venv and install in editable mode:
 
 ```bash
 python -m venv .venv
@@ -64,26 +52,44 @@ python -m pip install -U pip
 pip install -e .
 ````
 
-Verify the CLI and dry-run behavior:
+Check the CLI and try dry-run:
 
 ```bash
-export SPIN_OWNER=@you
+export SPIN_OWNER=@yourhandle
 spin --help
 spin up --count 2
 spin status
 spin down
 ```
 
-Live operations (only when you really mean it):
+**Notes**
+
+* With no `--apply` or without `SPIN_LIVE=1`, output is JSON previews and **no AWS calls** are made.
+* `spin down` requires `--group` for destructive actions (override via `SPIN_ALLOW_GLOBAL_DOWN=1` only if you really mean it).
+
+---
+
+## Live operations (guarded; optional)
+
+Only when you’re ready and have credentials:
 
 ```bash
-# Requires AWS creds + region configured
-export SPIN_OWNER=@you
+export SPIN_OWNER=@yourhandle
 export SPIN_LIVE=1
-spin up --count 1 --apply
+spin up --count 1 --apply          # touches AWS
 spin status
-spin down --group <the-group-from-up> --apply
+spin down --group <id> --apply
 ```
+
+---
+
+## Environment variables
+
+* `SPIN_OWNER` (required): logical owner tag.
+* `SPIN_REGION` (optional): default region (falls back to `AWS_DEFAULT_REGION` then `eu-north-1`).
+* `SPIN_DRY_RUN` (default `1`): when `1`, `status` also avoids AWS.
+* `SPIN_LIVE` (default `0`): must be `1` **and** you must pass `--apply` to perform live actions.
+* `SPIN_ALLOW_GLOBAL_DOWN` (default `0`): allow `down` without `--group` (dangerous; owner-scoped still).
 
 ---
 
@@ -92,6 +98,8 @@ spin down --group <the-group-from-up> --apply
 ```bash
 pytest -q
 ```
+
+Tests cover dry-run behavior and a safe “live” flow under `moto`.
 
 ---
 
@@ -109,16 +117,11 @@ pytest -q
 
 ## Roadmap (high level)
 
-<<<<<<< HEAD
-* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model, safety interlock
-* **Next:** wire minimal AWS calls in `eu-north-1`; `status` lists instances; safe `down` flow
-=======
-* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model
-* **Next:** wire minimal AWS calls in `eu-north-1` using the tag schema; `status` lists instances; safe `down`
+* **Sprint 2 (this sprint):** installable CLI, dry-run commands, tag model, safety interlocks
+* **Next:** wire minimal AWS calls in `eu-north-1`; `status` lists instances; safe `down`
 
 ---
 
 ## License
 
 MIT
->>>>>>> 73b401f (test: add minimal pytest for spin CLI and wire CI (DoD: AC verifiable))
