@@ -39,3 +39,6 @@ dist/
 # JetBrains
 .idea/
 *.iml
+
+# Artifacts
+*.egg-info/
