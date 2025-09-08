@@ -98,7 +98,28 @@ def cmd_up(args) -> int:
 def cmd_status(args) -> int:
     s = load_settings()
     res = aws.status(s, group=args.group)
-    print(json.dumps(res, indent=2))
+    
+    if args.table:
+        headers = ["InstanceId", "State", "Health", "Uptime(min)", "SpinGroup"]
+        if res:
+            rows = []
+            for inst in res:
+                spin_group = inst.get("tags", {}).get("SpinGroup", "N/A")
+                uptime = inst.get("uptime_min", 0)
+                rows.append([
+                    inst["id"],
+                    inst["state"],
+                    inst.get("health", "UNKNOWN"),
+                    str(uptime),
+                    spin_group
+                ])
+            print(_format_table(headers, rows))
+        else:
+            print(_format_table(headers, []))
+    else:
+        # Default JSON output
+        print(json.dumps(res, indent=2))
+    
     return 0
 
 
@@ -129,6 +150,7 @@ def build_parser() -> argparse.ArgumentParser:
     # status
     sp_st = sub.add_parser("status", help="List instances for this owner (optionally by group).")
     sp_st.add_argument("--group", default=None, help="Group id to filter")
+    sp_st.add_argument("--table", action="store_true", help="Output in table format instead of JSON")
     sp_st.set_defaults(func=cmd_status)
 
     # down
