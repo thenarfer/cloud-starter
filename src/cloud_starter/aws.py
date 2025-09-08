@@ -105,6 +105,41 @@ def _default_ami(region: str) -> str:
     return _DEFAULT_AMIS[region]
 
 
+def wait_for_instances_terminated(settings: Settings, instance_ids: list[str], timeout_seconds: int = 90) -> bool:
+    """Wait for instances to reach 'terminated' state.
+    
+    Returns True if all instances are terminated, False if timeout.
+    """
+    if not instance_ids:
+        return True
+        
+    start_time = time.time()
+    while (time.time() - start_time) < timeout_seconds:
+        try:
+            resp = ec2_client(settings.region).describe_instances(InstanceIds=instance_ids)
+            all_terminated = True
+            for res in resp.get("Reservations", []):
+                for inst in res.get("Instances", []):
+                    state = inst.get("State", {}).get("Name", "unknown")
+                    if state != "terminated":
+                        all_terminated = False
+                        break
+                if not all_terminated:
+                    break
+            
+            if all_terminated:
+                return True
+                
+            # Wait before checking again
+            time.sleep(5)
+            
+        except ClientError:
+            # If we can't check status, assume failure
+            return False
+    
+    return False  # Timeout
+
+
 def wait_for_instances_running(settings: Settings, instance_ids: list[str], timeout_seconds: int = 90) -> bool:
     """Wait for instances to reach 'running' state.
     
@@ -349,7 +384,15 @@ def down(settings: Settings, group: str | None = None, *, apply: bool = False) -
 
     try:
         ec2_client(settings.region).terminate_instances(InstanceIds=ids)
-        return {"applied": True, "terminated": ids}
+        
+        # Wait for instances to be terminated (bounded waiter)
+        wait_success = wait_for_instances_terminated(settings, ids, timeout_seconds=90)
+        
+        result = {"applied": True, "terminated": ids}
+        if not wait_success:
+            result["warning"] = "Instances terminated but timed out waiting for terminated state. Check with 'spin status'."
+        
+        return result
     except NoCredentialsError as e:
         raise RuntimeError(
             "No AWS credentials found. "

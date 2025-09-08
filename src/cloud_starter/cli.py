@@ -130,7 +130,22 @@ def cmd_down(args) -> int:
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
+    
+    # Always print JSON first
     print(json.dumps(res, indent=2))
+    
+    # Add friendly summary after JSON for applied terminations
+    if res.get("applied") and res.get("terminated"):
+        count = len(res["terminated"])
+        group_info = f" in group {args.group}" if args.group else ""
+        owner = s.owner
+        print(f"Terminated {count} instance(s){group_info} (owner={owner}).")
+    
+    # Check for timeout warning and exit non-zero
+    if res.get("warning"):
+        print(f"Warning: {res['warning']}", file=sys.stderr)
+        return 1
+    
     return 0
 
 

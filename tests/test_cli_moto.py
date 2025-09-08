@@ -14,6 +14,34 @@ def test_resolve_ami_via_ssm_success():
 
 
 @mock_aws
+def test_down_with_friendly_summary_under_moto(monkeypatch, capsys):
+    """Test down command with friendly summary under moto."""
+    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-north-1")
+    monkeypatch.setenv("SPIN_OWNER", "pytest")
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    # Launch an instance first
+    rc = cli.main(["up", "--count", "1", "--apply"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    up = json.loads(out)
+    group = up["group"]
+
+    # Down with friendly summary
+    rc = cli.main(["down", "--group", group, "--apply"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    
+    # Should contain JSON and friendly summary
+    assert "applied" in out  # JSON part
+    assert "terminated" in out  # JSON part
+    assert "Terminated 1 instance(s)" in out  # Summary part
+    assert f"in group {group}" in out  # Summary part
+    assert "(owner=pytest)" in out  # Summary part
+
+
+@mock_aws
 def test_status_with_table_output_under_moto(monkeypatch, capsys):
     """Test --table output for status command under moto."""
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-north-1")
@@ -104,6 +132,18 @@ def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     rc = cli.main(["down", "--group", group, "--apply"])
     assert rc == 0
     out, err = capsys.readouterr()
-    dn = json.loads(out)
+    # Split output - first part is JSON, second part is friendly summary
+    lines = out.strip().split('\n')
+    json_end = 0
+    for i, line in enumerate(lines):
+        if line.strip() == '}':
+            json_end = i + 1
+            break
+    
+    json_output = '\n'.join(lines[:json_end])
+    summary_output = '\n'.join(lines[json_end:]).strip()
+    
+    dn = json.loads(json_output)
     assert dn["applied"] is True
     assert "terminated" in dn
+    assert "Terminated 2 instance(s)" in summary_output
