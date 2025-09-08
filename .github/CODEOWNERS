@@ -1,0 +1,7 @@
+# Product docs need PO review
+/README.md            @thenarfer
+/docs/**              @thenarfer
+
+# Engineering bits need Dev review (replace with your team handle later)
+/src/**               @thenarfer
+/.github/**           @thenarfer
