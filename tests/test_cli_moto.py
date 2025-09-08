@@ -14,6 +14,24 @@ def test_resolve_ami_via_ssm_success():
 
 
 @mock_aws
+def test_up_with_table_output_under_moto(monkeypatch, capsys):
+    """Test --table output for up command under moto."""
+    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-north-1")
+    monkeypatch.setenv("SPIN_OWNER", "pytest")
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    # UP with table output
+    rc = cli.main(["up", "--count", "1", "--apply", "--table"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    assert "InstanceId" in out
+    assert "PublicIp" in out
+    assert "State" in out
+    assert "SpinGroup" in out
+
+
+@mock_aws
 def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     # Enable live behavior under moto (safe), and make owner explicit
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-north-1")

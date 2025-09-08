@@ -8,6 +8,30 @@ from .config import load_settings, Settings
 from . import aws
 
 
+def _format_table(headers: list[str], rows: list[list[str]]) -> str:
+    """Format data as a simple table."""
+    if not rows:
+        return f"{' | '.join(headers)}\n{'-' * (len(' | '.join(headers)))}\n"
+    
+    # Calculate column widths
+    col_widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            col_widths[i] = max(col_widths[i], len(str(cell)))
+    
+    # Format header
+    header_line = " | ".join(h.ljust(col_widths[i]) for i, h in enumerate(headers))
+    separator = "-" * len(header_line)
+    
+    # Format rows  
+    row_lines = []
+    for row in rows:
+        row_line = " | ".join(str(cell).ljust(col_widths[i]) for i, cell in enumerate(row))
+        row_lines.append(row_line)
+    
+    return "\n".join([header_line, separator] + row_lines)
+
+
 def _settings_for_apply(args) -> Settings:
     """Return runtime settings, toggling dry_run off when --apply is used.
 
@@ -29,7 +53,45 @@ def cmd_up(args) -> int:
         group=args.group,
         apply=args.apply,
     )
-    print(json.dumps(res, indent=2))
+    
+    if args.table:
+        # For table format, we need to show instance details
+        if res.get("applied") and res.get("ids"):
+            # Get current status for table display
+            status_res = aws.status(s, group=res["group"])
+            headers = ["InstanceId", "PublicIp", "State", "SpinGroup"]
+            rows = []
+            for inst in status_res:
+                public_ip = inst.get("public_ip", "N/A")
+                rows.append([
+                    inst["id"], 
+                    public_ip,
+                    inst["state"], 
+                    inst.get("tags", {}).get("SpinGroup", "N/A")
+                ])
+            
+            if rows:
+                print(_format_table(headers, rows))
+            else:
+                print(_format_table(headers, []))
+        else:
+            # Dry-run or no instances - show preview table
+            headers = ["InstanceId", "PublicIp", "State", "SpinGroup"]
+            if res.get("applied") is False:  # dry-run
+                rows = [["(dry-run)", "N/A", "pending", res.get("group", "N/A")]]
+                print(_format_table(headers, rows))
+                print(f"\nDry-run: Would launch {res.get('count', 0)} instance(s) of type {res.get('type', 'N/A')}")
+            else:
+                print(_format_table(headers, []))
+    else:
+        # Default JSON output
+        print(json.dumps(res, indent=2))
+    
+    # Check for timeout warning and exit non-zero
+    if res.get("warning"):
+        print(f"Warning: {res['warning']}", file=sys.stderr)
+        return 1
+    
     return 0
 
 
@@ -61,6 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp_up.add_argument("--type", default=None, help="EC2 instance type (default t3.micro)")
     sp_up.add_argument("--group", default=None, help="Optional group id to reuse")
     sp_up.add_argument("--apply", action="store_true", help="Apply for real (requires SPIN_LIVE=1)")
+    sp_up.add_argument("--table", action="store_true", help="Output in table format instead of JSON")
     sp_up.set_defaults(func=cmd_up)
 
     # status
