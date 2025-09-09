@@ -11,24 +11,26 @@ from . import aws
 def _format_table(headers: list[str], rows: list[list[str]]) -> str:
     """Format data as a simple table."""
     if not rows:
-        return f"{' | '.join(headers)}\n{'-' * (len(' | '.join(headers)))}\n"
-    
+        header_line = " | ".join(headers)
+        separator = "-" * len(header_line)
+        return f"{header_line}\n{separator}\n"
+
     # Calculate column widths
     col_widths = [len(h) for h in headers]
     for row in rows:
         for i, cell in enumerate(row):
             col_widths[i] = max(col_widths[i], len(str(cell)))
-    
+
     # Format header
     header_line = " | ".join(h.ljust(col_widths[i]) for i, h in enumerate(headers))
     separator = "-" * len(header_line)
-    
-    # Format rows  
+
+    # Format rows
     row_lines = []
     for row in rows:
         row_line = " | ".join(str(cell).ljust(col_widths[i]) for i, cell in enumerate(row))
         row_lines.append(row_line)
-    
+
     return "\n".join([header_line, separator] + row_lines)
 
 
@@ -53,7 +55,7 @@ def cmd_up(args) -> int:
         group=args.group,
         apply=args.apply,
     )
-    
+
     if args.table:
         # For table format, we need to show instance details
         if res.get("applied") and res.get("ids"):
@@ -64,16 +66,13 @@ def cmd_up(args) -> int:
             for inst in status_res:
                 public_ip = inst.get("public_ip", "N/A")
                 rows.append([
-                    inst["id"], 
+                    inst["id"],
                     public_ip,
-                    inst["state"], 
-                    inst.get("tags", {}).get("SpinGroup", "N/A")
+                    inst["state"],
+                    inst.get("tags", {}).get("SpinGroup", "N/A"),
                 ])
-            
-            if rows:
-                print(_format_table(headers, rows))
-            else:
-                print(_format_table(headers, []))
+
+            print(_format_table(headers, rows) if rows else _format_table(headers, []))
         else:
             # Dry-run or no instances - show preview table
             headers = ["InstanceId", "PublicIp", "State", "SpinGroup"]
@@ -86,33 +85,40 @@ def cmd_up(args) -> int:
     else:
         # Default JSON output
         print(json.dumps(res, indent=2))
-    
+
     # Check for timeout warning and exit non-zero
     if res.get("warning"):
         print(f"Warning: {res['warning']}", file=sys.stderr)
         return 1
-    
+
     return 0
+
 
 def cmd_status(args) -> int:
     s = load_settings()
-    res = aws.status(s, group=args.group)
+    try:
+        res = aws.status(s, group=args.group)
+    except RuntimeError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
     if args.table:
-        headers = ["InstanceId", "PublicIp", "State", "SpinGroup"]
+        headers = ["InstanceId", "State", "Health", "Uptime(min)", "SpinGroup"]
         rows = []
         for inst in res:
-            public_ip = inst.get("public_ip", "N/A")
+            spin_group = inst.get("tags", {}).get("SpinGroup", "N/A")
             rows.append([
                 inst["id"],
-                public_ip,
                 inst["state"],
-                inst.get("tags", {}).get("SpinGroup", "N/A"),
+                inst.get("health", "UNKNOWN"),
+                str(inst.get("uptime_min", 0)),
+                spin_group,
             ])
-        print(_format_table(headers, rows))
+        print(_format_table(headers, rows) if rows else _format_table(headers, []))
     else:
         print(json.dumps(res, indent=2))
     return 0
+
 
 def cmd_down(args) -> int:
     s = _settings_for_apply(args)
@@ -133,6 +139,7 @@ def cmd_down(args) -> int:
     else:
         print(json.dumps(res, indent=2))
     return 0
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="spin", description="Tiny EC2 MVP helper.")
@@ -163,6 +170,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp_dn.set_defaults(func=cmd_down)
 
     return p
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
