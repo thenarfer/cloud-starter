@@ -96,20 +96,25 @@ def cmd_up(args) -> int:
 
 def cmd_status(args) -> int:
     s = load_settings()
-    res = aws.status(s, group=args.group)
+    try:
+        res = aws.status(s, group=args.group)
+    except RuntimeError as e:
+        print(str(e), file=sys.stderr)
+        return 1
 
     if args.table:
-        headers = ["InstanceId", "PublicIp", "State", "SpinGroup"]
+        headers = ["InstanceId", "State", "Health", "Uptime(min)", "SpinGroup"]
         rows = []
         for inst in res:
-            public_ip = inst.get("public_ip", "N/A")
+            spin_group = inst.get("tags", {}).get("SpinGroup", "N/A")
             rows.append([
                 inst["id"],
-                public_ip,
                 inst["state"],
-                inst.get("tags", {}).get("SpinGroup", "N/A"),
+                inst.get("health", "UNKNOWN"),
+                str(inst.get("uptime_min", 0)),
+                spin_group,
             ])
-        print(_format_table(headers, rows))
+        print(_format_table(headers, rows) if rows else _format_table(headers, []))
     else:
         print(json.dumps(res, indent=2))
     return 0
