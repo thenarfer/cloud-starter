@@ -228,9 +228,10 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
     if group:
         filters.append({"Name": "tag:SpinGroup", "Values": [group]})
 
-    out: list[dict] = []
     token: str | None = None
-    
+    instance_ids: list[str] = []
+    instance_data: dict[str, dict] = {}
+
     # Get instance details
     while True:
         kwargs = {"Filters": filters, "MaxResults": 1000}
@@ -244,15 +245,12 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                 "To run live, set AWS_PROFILE or run `aws configure`. "
                 "Otherwise keep dry-run."
             ) from e
-        
-        instance_ids = []
-        instance_data = {}
-        
+
         for res in resp.get("Reservations", []):
             for inst in res.get("Instances", []):
                 instance_id = inst["InstanceId"]
                 instance_ids.append(instance_id)
-                
+
                 tags = {t["Key"]: t["Value"] for t in inst.get("Tags", [])}
                 launch_time = inst.get("LaunchTime")
                 uptime_min = 0
@@ -260,7 +258,7 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                     # Calculate uptime in minutes
                     now = datetime.now(timezone.utc)
                     uptime_min = int((now - launch_time).total_seconds() / 60)
-                
+
                 instance_data[instance_id] = {
                     "id": instance_id,
                     "state": inst.get("State", {}).get("Name", "unknown"),
@@ -268,11 +266,11 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                     "uptime_min": uptime_min,
                     "tags": tags,
                 }
-        
+
         token = resp.get("NextToken")
         if not token:
             break
-    
+
     # Get instance health status
     if instance_ids:
         try:
@@ -280,7 +278,7 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                 InstanceIds=instance_ids,
                 IncludeAllInstances=True  # Include instances in all states
             )
-            
+
             # Update with health information
             for status in status_resp.get("InstanceStatuses", []):
                 instance_id = status["InstanceId"]
@@ -288,16 +286,16 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                     # Determine overall health from instance and system status
                     instance_status = status.get("InstanceStatus", {}).get("Status", "unknown")
                     system_status = status.get("SystemStatus", {}).get("Status", "unknown")
-                    
+
                     if instance_status == "ok" and system_status == "ok":
                         health = "OK"
                     elif instance_status in ("initializing", "insufficient-data") or system_status in ("initializing", "insufficient-data"):
                         health = "INITIALIZING"
                     else:
                         health = "IMPAIRED"
-                    
+
                     instance_data[instance_id]["health"] = health
-            
+
             # Add health info for instances without status (e.g., pending/stopping)
             for instance_id, data in instance_data.items():
                 if "health" not in data:
@@ -306,15 +304,14 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                         data["health"] = "INITIALIZING"
                     else:
                         data["health"] = "UNKNOWN"
-        
+
         except ClientError:
             # If we can't get status, mark all as unknown
             for data in instance_data.values():
                 data["health"] = "UNKNOWN"
-    
+
     # Convert to list
-    out = list(instance_data.values())
-    return out
+    return list(instance_data.values())
 
 
 def status(settings: Settings, group: str | None = None) -> list[dict]:

@@ -7,7 +7,11 @@ A transparent learning project to practice Product Ownership and disciplined del
 
 ## Sprint 3 — Hardened Live Path & UX
 
-**Sprint Goal:** Harden the **live path** and improve **UX** for `spin`: resolve latest AL2023 AMI via SSM, add bounded waiters, and human-friendly table output for `up | status | down`.
+**Sprint Goal:** Harden the **live path** and improve **UX** for `spin`:  
+- Resolve latest AL2023 AMI via SSM  
+- Add bounded waiters for instance readiness  
+- Add human-friendly `--table` output for `up | status | down`  
+- Enrich `status` with **health** and **uptime**
 
 ### Scope (Committed P0s)
 
@@ -25,11 +29,26 @@ A transparent learning project to practice Product Ownership and disciplined del
     ```
 
 - **`feat(status)`: health + uptime + `--table`**  
-  - `status` now enriches with `health` (`OK | IMPAIRED | INITIALIZING | UNKNOWN`) and `uptime_min` (minutes since LaunchTime).  
+  - `status` enriches with `health` (`OK | IMPAIRED | INITIALIZING | UNKNOWN`) and `uptime_min` (minutes since LaunchTime).  
   - JSON remains default; `--table` prints:  
     ```
     InstanceId | State | Health | Uptime(min) | SpinGroup
-    ```  
+    ```
+
+- **`feat(down)`: table output**  
+  - Default JSON unchanged.  
+  - With `--table`, print:  
+    ```
+    InstanceId | State
+    ```
+
+### Non-goals (not in this sprint)
+
+- Multi-cloud (Azure/GCP), Terraform/IaC  
+- SSH/provisioners, IAM hardening  
+- Autoscaling, budgets/policies beyond basic teardown  
+- Monitoring/alerts  
+- Real instance lifecycle beyond the minimal demo  
 
 ---
 
@@ -100,7 +119,7 @@ spin down --group <id> --apply --table
 pytest -q
 ```
 
-Tests cover dry-run behavior, waiter paths, table outputs, and moto-based roundtrips.
+Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichment, and moto-based roundtrips.
 
 ---
 
