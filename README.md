@@ -9,14 +9,17 @@ A transparent learning project to practice Product Ownership and disciplined del
 
 **Sprint Goal:** Harden the **live path** and improve **UX** for `spin`:  
 - Resolve latest AL2023 AMI via SSM  
-- Add bounded waiters  
+- Add bounded waiters for instance readiness  
 - Add human-friendly `--table` output for `up | status | down`
 
 ### Scope (committed P0s)
 
 - **AMI resolution:** latest Amazon Linux 2023 (`x86_64`) fetched dynamically from SSM Parameter Store  
-- **Waiters:** after `up --apply`, poll instance state until running or timeout (≈90s); non-zero exit on timeout  
-- **Table output:** when `--table` is passed, print `InstanceId | PublicIp | State | SpinGroup` (default remains JSON)
+- **Waiters:** after `up --apply`, poll instance state until running or timeout (≈90s); on timeout exit non-zero with guidance  
+- **Table output:** when `--table` is passed, print:  
+  `InstanceId | PublicIp | State | SpinGroup` (for `up` and `status`)  
+  `InstanceId | State` (for `down`)  
+- Default output remains **JSON**, preserving compatibility with earlier scripts and tests
 
 ### Non-goals (not in this sprint)
 
@@ -98,8 +101,8 @@ pytest -q
 Tests cover dry-run behavior and a safe “live” flow under `moto`, including:
 
 * dynamic AMI resolution via SSM
-* waiter logic
-* table output
+* waiter success and timeout
+* table output for `up | status | down`
 
 ---
 

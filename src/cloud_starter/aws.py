@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import random
 import string
+import time
 
 from botocore.exceptions import ClientError, NoCredentialsError
 
@@ -103,6 +104,41 @@ def _default_ami(region: str) -> str:
     return _DEFAULT_AMIS[region]
 
 
+def wait_for_instances_running(settings: Settings, instance_ids: list[str], timeout_seconds: int = 90) -> bool:
+    """Wait for instances to reach 'running' state.
+    
+    Returns True if all instances are running, False if timeout.
+    """
+    if not instance_ids:
+        return True
+        
+    start_time = time.time()
+    while (time.time() - start_time) < timeout_seconds:
+        try:
+            resp = ec2_client(settings.region).describe_instances(InstanceIds=instance_ids)
+            all_running = True
+            for res in resp.get("Reservations", []):
+                for inst in res.get("Instances", []):
+                    state = inst.get("State", {}).get("Name", "unknown")
+                    if state not in ("running", "terminated"):  # terminated = failed
+                        all_running = False
+                        break
+                if not all_running:
+                    break
+            
+            if all_running:
+                return True
+                
+            # Wait before checking again
+            time.sleep(5)
+            
+        except ClientError:
+            # If we can't check status, assume failure
+            return False
+    
+    return False  # Timeout
+
+
 def up_instances(
     settings: Settings,
     count: int,
@@ -145,14 +181,31 @@ def up_instances(
     try:
         resp = ec2_client(settings.region).run_instances(**params)
         ids = [i["InstanceId"] for i in resp.get("Instances", [])]
-        return {
-            "applied": True,
-            "group": group,
-            "ids": ids,
-            "count": len(ids),
-            "type": itype,
-            "region": settings.region,
-        }
+        
+        # Wait for instances to be running (bounded waiter)
+        wait_success = wait_for_instances_running(settings, ids, timeout_seconds=90)
+        if not wait_success:
+            # Don't fail completely, but indicate timeout in response
+            result = {
+                "applied": True,
+                "group": group,
+                "ids": ids,
+                "count": len(ids),
+                "type": itype,
+                "region": settings.region,
+                "warning": "Instances launched but timed out waiting for running state. Check with 'spin status'."
+            }
+        else:
+            result = {
+                "applied": True,
+                "group": group,
+                "ids": ids,
+                "count": len(ids),
+                "type": itype,
+                "region": settings.region,
+            }
+        
+        return result
     except NoCredentialsError as e:
         raise RuntimeError(
             "No AWS credentials found. "
@@ -195,6 +248,7 @@ def _status_live(settings: Settings, group: str | None) -> list[dict]:
                     {
                         "id": inst["InstanceId"],
                         "state": inst.get("State", {}).get("Name", "unknown"),
+                        "public_ip": inst.get("PublicIpAddress"),
                         "tags": tags,
                     }
                 )
