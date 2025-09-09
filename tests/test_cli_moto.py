@@ -2,7 +2,6 @@ from __future__ import annotations
 import json
 from moto import mock_aws
 import pytest
-import pytest
 from cloud_starter import cli
 from cloud_starter.aws import resolve_ami_via_ssm
 
