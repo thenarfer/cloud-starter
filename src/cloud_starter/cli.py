@@ -11,8 +11,9 @@ from . import aws
 def _format_table(headers: list[str], rows: list[list[str]]) -> str:
     """Format data as a simple table."""
     if not rows:
-        return f"{' | '.join(headers)}\n{'-' * (len(' | '.join(headers)))}\n"
-    
+        header_line = ' | '.join(headers)
+        separator = '-' * len(header_line)
+        return f"{header_line}\n{separator}\n"
     # Calculate column widths
     col_widths = [len(h) for h in headers]
     for row in rows:
