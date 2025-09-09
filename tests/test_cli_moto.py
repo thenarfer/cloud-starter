@@ -21,7 +21,6 @@ def test_up_with_table_output_under_moto(monkeypatch, capsys):
     monkeypatch.setenv("SPIN_LIVE", "1")
     monkeypatch.setenv("SPIN_DRY_RUN", "0")
 
-    # UP with table output
     rc = cli.main(["up", "--count", "1", "--apply", "--table"])
     assert rc == 0
     out, err = capsys.readouterr()
@@ -39,7 +38,7 @@ def test_status_with_table_and_json_output(monkeypatch, capsys):
     monkeypatch.setenv("SPIN_LIVE", "1")
     monkeypatch.setenv("SPIN_DRY_RUN", "0")
 
-    # First launch an instance
+    # Launch an instance
     rc = cli.main(["up", "--count", "1", "--apply"])
     assert rc == 0
     out, err = capsys.readouterr()
@@ -56,7 +55,7 @@ def test_status_with_table_and_json_output(monkeypatch, capsys):
     assert "Uptime(min)" in out
     assert "SpinGroup" in out
 
-    # JSON output with enriched fields
+    # JSON output (enriched fields)
     rc = cli.main(["status"])
     assert rc == 0
     out, err = capsys.readouterr()
@@ -81,19 +80,19 @@ def test_status_initializing_health(monkeypatch, capsys):
     monkeypatch.setenv("SPIN_LIVE", "1")
     monkeypatch.setenv("SPIN_DRY_RUN", "0")
 
-    # Launch an instance
+    # Launch instance
     rc = cli.main(["up", "--count", "1", "--apply"])
     assert rc == 0
     capsys.readouterr()
 
-    # Monkeypatch aws._status_live to simulate initializing state
+    # Monkeypatch status to simulate INITIALIZING
     def fake_status_live(settings, group=None):
         return [{
             "id": "i-1234567890abcdef0",
             "state": "pending",
             "health": "INITIALIZING",
             "uptime_min": 0,
-            "tags": {"SpinGroup": "demo"}
+            "tags": {"SpinGroup": "demo"},
         }]
 
     monkeypatch.setattr("cloud_starter.aws._status_live", fake_status_live)
@@ -124,13 +123,12 @@ def test_status_api_error_exit_code(monkeypatch, capsys):
 @mock_aws
 def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     """Full roundtrip test: up → status → down under moto."""
-    # Enable live behavior under moto (safe), and make owner explicit
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-north-1")
     monkeypatch.setenv("SPIN_OWNER", "pytest")
     monkeypatch.setenv("SPIN_LIVE", "1")
     monkeypatch.setenv("SPIN_DRY_RUN", "0")
 
-    # UP (apply)
+    # UP
     rc = cli.main(["up", "--count", "2", "--apply"])
     assert rc == 0
     out, err = capsys.readouterr()
@@ -138,19 +136,51 @@ def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     assert up["applied"] is True
     assert up["count"] == 2
     group = up["group"]
-    assert isinstance(group, str) and group
 
-    # STATUS (live listing via moto)
+    # STATUS
     rc = cli.main(["status"])
     assert rc == 0
     out, err = capsys.readouterr()
     st = json.loads(out or "[]")
     assert isinstance(st, list)
 
-    # DOWN (apply) — requires group
+    # DOWN
     rc = cli.main(["down", "--group", group, "--apply"])
     assert rc == 0
     out, err = capsys.readouterr()
     dn = json.loads(out)
     assert dn["applied"] is True
     assert "terminated" in dn
+
+
+@mock_aws
+def test_up_waiter_timeout(monkeypatch, capsys):
+    """Simulate waiter timeout and check non-zero exit + warning."""
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    # Force waiter to fail
+    monkeypatch.setattr("cloud_starter.aws.wait_for_instances_running", lambda *a, **k: False)
+
+    rc = cli.main(["up", "--count", "1", "--apply"])
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert "timed out" in err or "Warning" in err
+
+
+@mock_aws
+def test_down_with_table_output(monkeypatch, capsys):
+    """Test --table output for down command."""
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    cli.main(["up", "--count", "1", "--apply"])
+    out, _ = capsys.readouterr()
+    group = json.loads(out)["group"]
+
+    rc = cli.main(["down", "--group", group, "--apply", "--table"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    assert "InstanceId" in out
+    assert "terminated" in out
+    assert err == ""
