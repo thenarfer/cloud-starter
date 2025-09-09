@@ -49,7 +49,6 @@ def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
 
     # Moto provides default AMI for the service parameter - no need to seed
 
-    # Moto provides default AMI for the service parameter - no need to seed
 
     # UP (apply)
     rc = cli.main(["up", "--count", "2", "--apply"])
