@@ -75,7 +75,6 @@ def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     assert dn["applied"] is True
     assert "terminated" in dn
 
-from cloud_starter import cli
 
 @mock_aws
 def test_up_waiter_timeout(monkeypatch, capsys):
