@@ -1,7 +1,16 @@
 from __future__ import annotations
 import json
 from moto import mock_aws
+import pytest
 from cloud_starter import cli
+from cloud_starter.aws import resolve_ami_via_ssm
+
+
+@mock_aws
+def test_resolve_ami_via_ssm_success():
+    """Test successful AMI resolution via SSM."""
+    ami_id = resolve_ami_via_ssm("eu-north-1")
+    assert ami_id.startswith("ami-")  # moto provides a default AMI
 
 
 @mock_aws
@@ -11,6 +20,8 @@ def test_roundtrip_up_status_down_under_moto(monkeypatch, capsys):
     monkeypatch.setenv("SPIN_OWNER", "pytest")
     monkeypatch.setenv("SPIN_LIVE", "1")
     monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    # Moto provides default AMI for the service parameter - no need to seed
 
     # UP (apply)
     rc = cli.main(["up", "--count", "2", "--apply"])

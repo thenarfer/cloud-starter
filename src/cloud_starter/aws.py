@@ -35,9 +35,63 @@ def ec2_client(region: str):
     return boto3.client("ec2", region_name=region)
 
 
+def ssm_client(region: str):
+    """Lazy import so dry-run works without boto3 installed.
+
+    When a live call is requested but boto3 is missing, provide a helpful error.
+    """
+    try:
+        import boto3  # local import to allow dry-run without boto3
+    except ModuleNotFoundError as e:
+        raise RuntimeError(
+            "boto3 is required for live operations. Install with: pip install boto3"
+        ) from e
+    return boto3.client("ssm", region_name=region)
+
+
 def _spin_group_id(length: int = 8) -> str:
     alphabet = string.ascii_lowercase + string.digits
     return "".join(random.choice(alphabet) for _ in range(length))
+
+
+def resolve_ami_via_ssm(region: str) -> str:
+    """Resolve latest AL2023 AMI ID via SSM Parameter Store.
+    
+    Uses public parameter: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+    """
+    parameter_name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64"
+    
+    try:
+        resp = ssm_client(region).get_parameter(Name=parameter_name)
+        ami_id = resp["Parameter"]["Value"]
+        if not ami_id.startswith("ami-"):
+            raise RuntimeError(f"Invalid AMI ID format returned from SSM: {ami_id}")
+        return ami_id
+    except NoCredentialsError as e:
+        raise RuntimeError(
+            "No AWS credentials found. "
+            "To run live, set AWS_PROFILE or run `aws configure`. "
+            "Otherwise omit --apply (dry-run)."
+        ) from e
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "Unknown")
+        if code == "ParameterNotFound":
+            raise RuntimeError(
+                f"AMI parameter not found in region {region}. "
+                f"Parameter: {parameter_name}. "
+                "This region may not support AL2023 or the parameter path has changed."
+            ) from e
+        elif code in ("AccessDenied", "UnauthorizedOperation"):
+            raise RuntimeError(
+                f"Access denied when fetching AMI parameter from SSM in region {region}. "
+                f"Parameter: {parameter_name}. "
+                "Ensure your AWS credentials have SSM:GetParameter permission."
+            ) from e
+        else:
+            raise RuntimeError(
+                f"Failed to fetch AMI from SSM in region {region} (code={code}). "
+                f"Parameter: {parameter_name}."
+            ) from e
 
 
 def _default_ami(region: str) -> str:
@@ -70,7 +124,7 @@ def up_instances(
             "region": settings.region,
         }
 
-    image_id = _default_ami(settings.region)
+    image_id = resolve_ami_via_ssm(settings.region)
     tags = [
         {"Key": "Project", "Value": PROJECT},
         {"Key": "ManagedBy", "Value": MANAGED_BY},
