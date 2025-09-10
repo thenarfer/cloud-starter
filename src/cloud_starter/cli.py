@@ -119,7 +119,6 @@ def cmd_status(args) -> int:
         print(json.dumps(res, indent=2))
     return 0
 
-
 def cmd_down(args) -> int:
     s = _settings_for_apply(args)
     try:
@@ -138,8 +137,12 @@ def cmd_down(args) -> int:
         print(_format_table(headers, rows))
     else:
         print(json.dumps(res, indent=2))
-    return 0
 
+    if res.get("warning"):
+        print(f"Warning: {res['warning']}", file=sys.stderr)
+        return 1
+
+    return 0
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="spin", description="Tiny EC2 MVP helper.")
