@@ -11,7 +11,8 @@ A transparent learning project to practice Product Ownership and disciplined del
 - Resolve latest AL2023 AMI via SSM  
 - Add bounded waiters for instance readiness  
 - Add human-friendly `--table` output for `up | status | down`  
-- Enrich `status` with **health** and **uptime**
+- Enrich `status` with **health** and **uptime**  
+- Add bounded waiter + summary for `down`
 
 ### Scope (Committed P0s)
 
@@ -41,6 +42,12 @@ A transparent learning project to practice Product Ownership and disciplined del
     ```
     InstanceId | State
     ```
+
+- **`feat(down)`: bounded waiter + friendly summary**  
+  - After `down --apply`, wait until instances are **terminated** or **timeout (~90s)**.  
+  - Exit code non-zero on timeout with guidance.  
+  - JSON includes `"warning"` field if timeout.  
+  - Table output unchanged.
 
 ### Non-goals (not in this sprint)
 
@@ -119,7 +126,7 @@ spin down --group <id> --apply --table
 pytest -q
 ```
 
-Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichment, and moto-based roundtrips.
+Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichment, down waiter/summary, and moto-based roundtrips.
 
 ---
 
@@ -137,8 +144,7 @@ Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichm
 
 ## Roadmap (high level)
 
-* **Sprint 3 (this sprint):** AMI resolution, waiter, enriched status, table UX
-* **Next:** `down` waiter until terminated, friendly summary, richer health checks (Issue #22)
+* **Sprint 3 (this sprint):** AMI resolution, waiter, enriched status, table UX, down waiter/summary
 
 ---
 

@@ -184,3 +184,40 @@ def test_down_with_table_output(monkeypatch, capsys):
     assert "InstanceId" in out
     assert "terminated" in out
     assert err == ""
+
+@mock_aws
+def test_down_waiter_timeout(monkeypatch, capsys):
+    """Simulate waiter timeout for down."""
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    cli.main(["up", "--count", "1", "--apply"])
+    out, _ = capsys.readouterr()
+    group = json.loads(out)["group"]
+
+    # Force waiter to fail
+    monkeypatch.setattr("cloud_starter.aws.wait_for_instances_terminated", lambda *a, **k: False)
+
+    rc = cli.main(["down", "--group", group, "--apply"])
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert "timed out" in err or "Warning" in err
+
+
+@mock_aws
+def test_down_with_summary(monkeypatch, capsys):
+    """Test down command shows summary info."""
+    monkeypatch.setenv("SPIN_LIVE", "1")
+    monkeypatch.setenv("SPIN_DRY_RUN", "0")
+
+    cli.main(["up", "--count", "1", "--apply"])
+    out, _ = capsys.readouterr()
+    group = json.loads(out)["group"]
+
+    rc = cli.main(["down", "--group", group, "--apply"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    data = json.loads(out)
+    assert data["applied"] is True
+    assert "terminated" in data
+    assert err == ""

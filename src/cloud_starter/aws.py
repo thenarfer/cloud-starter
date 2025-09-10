@@ -139,6 +139,36 @@ def wait_for_instances_running(settings: Settings, instance_ids: list[str], time
     
     return False  # Timeout
 
+def wait_for_instances_terminated(settings: Settings, instance_ids: list[str], timeout_seconds: int = 90) -> bool:
+    """Wait for instances to reach 'terminated' state.
+
+    Returns True if all instances are terminated, False if timeout.
+    """
+    if not instance_ids:
+        return True
+
+    start_time = time.time()
+    while (time.time() - start_time) < timeout_seconds:
+        try:
+            resp = ec2_client(settings.region).describe_instances(InstanceIds=instance_ids)
+            all_terminated = True
+            for res in resp.get("Reservations", []):
+                for inst in res.get("Instances", []):
+                    state = inst.get("State", {}).get("Name", "unknown")
+                    if state != "terminated":
+                        all_terminated = False
+                        break
+                if not all_terminated:
+                    break
+
+            if all_terminated:
+                return True
+
+            time.sleep(5)
+        except ClientError:
+            return False
+
+    return False
 
 def up_instances(
     settings: Settings,
@@ -328,10 +358,7 @@ def status(settings: Settings, group: str | None = None) -> list[dict]:
 def down(settings: Settings, group: str | None = None, *, apply: bool = False) -> dict:
     """Terminate instances in a group (or, with override, all owned)."""
     if group is None and os.getenv("SPIN_ALLOW_GLOBAL_DOWN", "").lower() not in {
-        "1",
-        "true",
-        "yes",
-        "on",
+        "1", "true", "yes", "on",
     }:
         raise ValueError(
             "Refusing to down without --group; set SPIN_ALLOW_GLOBAL_DOWN=1 to override (dangerous)."
@@ -346,7 +373,14 @@ def down(settings: Settings, group: str | None = None, *, apply: bool = False) -
 
     try:
         ec2_client(settings.region).terminate_instances(InstanceIds=ids)
-        return {"applied": True, "terminated": ids}
+
+        wait_success = wait_for_instances_terminated(settings, ids, timeout_seconds=90)
+
+        result = {"applied": True, "terminated": ids}
+        if not wait_success:
+            result["warning"] = "Instances termination timed out. Check with 'spin status'."
+
+        return result
     except NoCredentialsError as e:
         raise RuntimeError(
             "No AWS credentials found. "
@@ -356,3 +390,4 @@ def down(settings: Settings, group: str | None = None, *, apply: bool = False) -
     except ClientError as e:
         code = e.response.get("Error", {}).get("Code", "Unknown")
         raise RuntimeError(f"Failed to terminate instances (code={code}).") from e
+
