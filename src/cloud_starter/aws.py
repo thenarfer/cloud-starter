@@ -378,7 +378,7 @@ def down(settings: Settings, group: str | None = None, *, apply: bool = False) -
 
         result = {"applied": True, "terminated": ids}
         if not wait_success:
-            result["warning"] = "Instances termination timed out. Check with 'spin status'."
+            result["warning"] = "Instances have timed out during termination. Check with 'spin status'."
 
         return result
     except NoCredentialsError as e:
