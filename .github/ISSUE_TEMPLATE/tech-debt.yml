@@ -1,0 +1,76 @@
+name: "Tech Debt / Chore"
+description: "Refactoring, cleanup, dependency bumps, infra chores."
+title: "chore(<area>): <short description>"
+labels: ["type: tech-debt"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Tech debt / Chore
+        Focus on risk reduction, maintainability, and developer ergonomics.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Scope (optional)
+      options:
+        - CLI
+        - AWS
+        - Tests/CI
+        - Docs
+        - Process/Project
+        - Other
+    validations:
+      required: false
+
+  - type: dropdown
+    id: debt_type
+    attributes:
+      label: Debt type
+      options:
+        - Refactor
+        - Cleanup
+        - Dependency
+        - Infra
+        - Process
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why now (risk/benefit)
+      placeholder: "Reduces complexity, unblocks X, lowers cost/risk…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: change
+    attributes:
+      label: Proposed change
+      placeholder: "What will be done at a high level (no design doc needed)."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria (checklist)
+      value: |
+        - [ ] No functional behavior change (unless stated)
+        - [ ] CI green; tests updated if necessary
+        - [ ] Docs/README updated if user-visible
+        - [ ] Rollback plan (or safely reversible)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: ready_gate
+    attributes:
+      label: Ready to start (DoR)
+      options:
+        - label: Impact clarified (risk/benefit)
+          required: true
+        - label: Scope small enough for a single PR (or clearly chunked)
+          required: true

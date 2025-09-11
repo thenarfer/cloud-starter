@@ -1,0 +1,104 @@
+name: "Feature / Enhancement"
+description: "New capability or improvement to existing behavior."
+title: "feat(<area>): <short description>"
+labels: ["type: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature request
+        Please keep the **title** format and fill the fields with concise, concrete information.
+        Use the **Acceptance Criteria** as a living checklist; keep it outcome-focused and testable.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Scope (optional)
+      description: Which area does this primarily affect?
+      options:
+        - CLI
+        - AWS
+        - Tests/CI
+        - Docs
+        - Process/Project
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Why (problem / context)
+      description: "One short paragraph describing the problem/opportunity. Who is affected and why this matters now?"
+      placeholder: "As a developer, I want to <goal> so that <outcome>…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome (value)
+      description: "What does success look like for users? Be concrete; avoid solution details here."
+      placeholder: "Users can <do X> within <Y> seconds; the CLI returns <Z>…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria (checklist)
+      description: "Replace/edit these. Keep them objective and verifiable."
+      value: |
+        - [ ] CLI command(s) and flags defined in `--help`
+        - [ ] Behavior demonstrated with exact commands and expected output
+        - [ ] Errors are actionable (non-zero exit + message)
+        - [ ] Tests cover happy path + at least one failure path
+        - [ ] README updated (usage, examples, caveats)
+    validations:
+      required: true
+
+  - type: textarea
+    id: nfrs
+    attributes:
+      label: Non-functional constraints (NFRs)
+      description: "Security/Privacy, Cost/Blast-radius, Observability (logs/metrics), Performance, UX/Accessibility. Mark N/A if not applicable."
+      placeholder: "Security: N/A; Cost: owner-scoped tags; Observability: logs added…"
+    validations:
+      required: false
+
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies / Risks
+      description: "Linked issues, external blockers, rollout/rollback considerations."
+      placeholder: "Depends on #123; risk: AMI param drift; rollback: revert PR + doc note…"
+    validations:
+      required: false
+
+  - type: textarea
+    id: demo
+    attributes:
+      label: Demo / Evidence plan
+      description: "What will you show in the PR to prove AC? Commands, screenshots, logs, or CI links."
+      placeholder: |
+        ```
+        SPIN_OWNER=@me SPIN_LIVE=1
+        spin up --count 1 --apply --table
+        spin status --table
+        spin down --group <id> --apply --table
+        ```
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: ready_gate
+    attributes:
+      label: Ready to start (DoR)
+      description: "Confirm before moving this issue to **Ready**."
+      options:
+        - label: AC are testable & demo plan exists
+          required: true
+        - label: Risks/dependencies considered (or none)
+          required: true
+        - label: NFRs reviewed (or N/A)
+          required: true

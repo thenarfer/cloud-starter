@@ -1,0 +1,63 @@
+name: "Spike / Research"
+description: "Timeboxed investigation to answer a question or de-risk work."
+title: "spike(<area>): <question to answer>"
+labels: ["type: spike"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Scope (optional)
+      options:
+        - CLI
+        - AWS
+        - Tests/CI
+        - Docs
+        - Process/Project
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Hypothesis / question
+      placeholder: "We believe that… If we do…, we’ll learn whether…"
+    validations:
+      required: true
+
+  - type: input
+    id: timebox
+    attributes:
+      label: Timebox (hours)
+      placeholder: "4"
+    validations:
+      required: true
+
+  - type: textarea
+    id: exit
+    attributes:
+      label: Exit criteria / Deliverables
+      value: |
+        - [ ] Short write-up with recommendation
+        - [ ] Links to prototypes/branches if created
+        - [ ] Decision captured (proceed / pivot / stop)
+    validations:
+      required: true
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: Approach / plan
+      placeholder: "What will you do within the timebox?"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: ready_gate
+    attributes:
+      label: Ready to start (DoR)
+      options:
+        - label: Timebox set
+          required: true
+        - label: Exit criteria defined
+          required: true
