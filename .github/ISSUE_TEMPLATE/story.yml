@@ -1,0 +1,81 @@
+name: "Story / Feature"
+description: Plan a user-visible change with clear AC and demo steps.
+title: "feat(scope): short description"
+labels: ["type:story"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One short paragraph describing the desired outcome.
+      placeholder: As a developer, I want ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why (problem / context)
+      description: Why are we doing this? Link prior issues if helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: ac
+    attributes:
+      label: Acceptance Criteria (PO-owned)
+      description: Bullet list. Be specific and verifiable.
+      placeholder: |
+        - Shows X, Y in CLI table
+        - JSON includes fields A, B
+        - Non-happy paths handled with clear error
+    validations:
+      required: true
+
+  - type: textarea
+    id: demo
+    attributes:
+      label: Demo (commands & expected output)
+      description: Copy/paste commands used in Sprint Review.
+      placeholder: |
+        spin up --count 1 --apply --table
+        spin status --table
+        spin down --group <id> --apply --table
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: dor
+    attributes:
+      label: Definition of Ready (quick check)
+      options:
+        - label: Scope is clear and testable
+        - label: Risks/unknowns called out
+        - label: AC verifiable via CLI commands
+        - label: Labels set (type/priority/size/area)
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["priority:P0", "priority:P1", "priority:P2"]
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size
+      options: ["size:XS", "size:S", "size:M", "size:L", "size:XL"]
+      default: 2
+    validations:
+      required: true
+
+  - type: input
+    id: area
+    attributes:
+      label: Area/scope label (optional)
+      placeholder: area:status
+    validations:
+      required: false

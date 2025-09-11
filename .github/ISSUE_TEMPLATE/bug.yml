@@ -1,0 +1,40 @@
+name: "Bug"
+description: Something is broken or incorrect.
+title: "fix(scope): short description"
+labels: ["type:bug", "priority:P1"]
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Include logs/CLI output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro steps
+      placeholder: Exact commands from a clean repo.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ["S1-blocker", "S2-major", "S3-minor"]
+      default: 1
+    validations:
+      required: true
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - label: Affects live run
+        - label: Data/cost risk
