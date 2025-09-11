@@ -1,0 +1,58 @@
+name: "Docs / Fast-Track"
+description: "Small docs updates (≤15 minutes)."
+title: "docs(<area>): <short description>"
+labels: ["type: docs"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Docs Fast-Track
+        Lightweight template for quick documentation changes.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Scope (optional)
+      options:
+        - README
+        - Usage/CLI
+        - Process
+        - ADR/Decision
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: pages
+    attributes:
+      label: Pages to update
+      placeholder: "README.md, docs/DoD.md…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary of changes
+      placeholder: "One short paragraph describing the doc change."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria (checklist)
+      value: |
+        - [ ] Content accurate and up-to-date
+        - [ ] Cross-links verified
+        - [ ] Examples/commands tested (if present)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: ready_gate
+    attributes:
+      label: Ready to start (DoR)
+      options:
+        - label: Scope fits fast-track (≤15 min) or clearly low risk
+          required: true
