@@ -23,9 +23,9 @@ What changed, why it’s correct, and why it’s safe.
 
 ## Tests
 
-* [ ] Test reproduces prior failure (now passing)
-* [ ] CI green (no regressions)
-* [ ] Docs updated if user-facing
+- [ ] Test reproduces prior failure (now passing)
+- [ ] CI green (no regressions)
+- [ ] Docs updated if user-facing
 
 ## Risk / Rollback
 

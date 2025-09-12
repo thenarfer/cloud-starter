@@ -42,3 +42,6 @@ dist/
 
 # Artifacts
 *.egg-info/
+
+#Text files
+*.txt

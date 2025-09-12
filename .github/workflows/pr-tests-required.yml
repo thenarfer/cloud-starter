@@ -6,7 +6,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  statuses: write
 
 jobs:
   gate:
@@ -17,10 +16,16 @@ jobs:
         id: filter
         with:
           filters: |
-            src:
-              - 'src/**'
-            tests:
-              - 'tests/**'
+             src:
+               - 'src/**'
+               # optional monorepo or alt src locations:
+               # - 'packages/*/src/**'
+             tests:
+               - 'tests/**'
+               - 'test/**'
+               - '**/__tests__/**'
+               - 'spec/**'
+               - 'e2e/**'
 
       - name: Enforce tests presence
         uses: actions/github-script@v7
@@ -31,8 +36,13 @@ jobs:
           script: |
             const hasSrc = process.env.HAS_SRC === 'true';
             const hasTests = process.env.HAS_TESTS === 'true';
-            const labels = context.payload.pull_request.labels?.map(l => l.name) || [];
+            const isDraft = !!context.payload.pull_request.draft;
+            const labels = (context.payload.pull_request.labels || []).map(l => (l.name || '').toLowerCase());
             const bypass = labels.includes('skip-tests');
+            if (isDraft) {
+              core.notice("Draft PR: skipping tests gate.");
+              return;
+            }
             if (hasSrc && !hasTests && !bypass) {
               core.setFailed("Files under 'src/' changed but no tests under 'tests/'. Add tests or apply the 'skip-tests' label with justification.");
             } else if (hasSrc && !hasTests && bypass) {

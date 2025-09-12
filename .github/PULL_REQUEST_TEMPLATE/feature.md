@@ -25,17 +25,17 @@ spin down --group <id> --apply --table
 
 ## Acceptance Criteria verification
 
-* [ ] AC#1 – demo evidence below (logs/screenshots)
-* [ ] AC#2 – …
-* [ ] README / `--help` updated if user-facing
-* [ ] Tests cover happy path + one failure; CI green
+- [ ] AC#1 – demo evidence below (logs/screenshots)
+- [ ] AC#2 – …
+- [ ] README / `--help` updated if user-facing
+- [ ] Tests cover happy path + one failure; CI green
 
 ## Safety
 
-* [ ] **Breaking change?** no / yes → migration notes:
-* [ ] Live ops require `SPIN_LIVE=1` **and** `--apply`
-* [ ] Teardown remains owner + group scoped
-* [ ] Rollback: revert this PR (no data migration)
+- [ ] **Breaking change?** no / yes → migration notes:
+- [ ] Live ops require `SPIN_LIVE=1` **and** `--apply`
+- [ ] Teardown remains owner + group scoped
+- [ ] Rollback: revert this PR (no data migration)
 
 ## Evidence (screenshots / logs / links)
 
