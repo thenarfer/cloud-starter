@@ -22,6 +22,7 @@ jobs:
             fix
             chore
             docs
+            spike
             refactor
             test
             ci
