@@ -1,47 +1,34 @@
 # Definition of Ready (DoR)
 
-Our checklist for achieving a shared understanding before work begins. This prevents mid-sprint ambiguity and churn. It is a **living document**, used during Backlog Refinement and tuned in our Sprint Retrospectives.
+A collaborative checklist to ensure a Product Backlog Item (PBI) is well understood before entering a Sprint. DoR is **not a gate**; it guides refinement to reduce ambiguity and churn.
 
 ---
 
-### Core Readiness Checks (Applies to all items)
-- [ ] **Well-Scoped:** The item represents a single, valuable outcome and is small enough to complete in a Sprint (ideally S/M size).
-- [ ] **Value Stated ("The Why"):** A short paragraph clarifies the business or user value and links to any relevant context.
-- [ ] **Acceptance Criteria are Testable:** The ACs are a clear checkbox list of observable outcomes.
-  - For CLI work: Exact commands and expected output (tables, JSON, exit codes) are provided.
-  - At least one "unhappy path" or error case is defined.
-- [ ] **Non-Goals Defined:** 1-3 clear bullet points state what is explicitly *out of scope*.
-- [ ] **Test Plan Clear:** The intended approach for verification is stated (e.g., "add unit tests to X," "manual verification via Y").
-- [ ] **Dependencies Unblocked:** Any dependencies (on other teams, IAM policies, environment access) are identified and resolved.
-- [ ] **Metadata Set:** `Type`, `Priority`, and `Size` labels are set. The issue is in the correct `Milestone` and `Project` column to signal it is ready for a Sprint.
+### Guiding Principles
+- **Shared understanding:** PO and Developers align on problem and outcome.
+- **INVEST lens:** Independent · Negotiable · Valuable · Estimable · Small · Testable.
 
 ---
 
-### Type-Specific Checks
+### Core readiness checks (apply to all work)
+- [ ] **Value stated (“why”)** — ideally as a user story (`As a [user], I want [action], so that [value]`).
+- [ ] **Sprint Goal fit** — we can say how this supports the goal.
+- [ ] **Acceptance criteria are verifiable** — checklist of pass/fail conditions, incl. **at least one unhappy path**.
+- [ ] **Acceptance demo plan** — how we’ll show it (commands/screenshots/URL).
+- [ ] **Non-goals** — 1–3 bullets explicitly out of scope.
+- [ ] **Right-sized (S/M)** — fits in one Sprint; if **L**, split before commitment.
+- [ ] **Dependencies & access** — external deps/IAM/env are identified and **not blocking** (or a clear plan exists).
+- [ ] **Assumptions & risks** — called out briefly, with mitigation if needed.
+- [ ] **PO & Devs aligned** — PO agrees ACs are testable and is available for clarification.
+- [ ] **Metadata set** — Type, Priority, Size; correct Milestone/Project column; intended PR template; **assignee (single DRI)**.
 
+---
+
+### Type-specific checks
 **Bug**
-- [ ] **Reproducible:** Clear "Observed vs. Expected" behavior with a minimal reproduction case.
-- [ ] **Impact Assessed:** Severity and potential blast radius are noted.
+- [ ] **Reproducible** — minimal steps, observed vs expected, impact/severity noted.
 
-**Spike**
-- [ ] **Question Defined:** A single, clear question or hypothesis is stated.
-- [ ] **Timebox Agreed:** An explicit time limit (e.g., 4 hours) is set.
-- [ ] **Deliverable Stated:** The output is defined (e.g., "a short document with findings and a recommendation").
-
-**Docs / Fast-Track**
-- [ ] **Scope Defined:** A list of pages, sections, or anchors to be updated is included.
-
----
-
-### Sizing Guide
-*The goal of sizing is to ensure work fits in a Sprint and to surface misunderstandings.*
-
-- **S (Small):** ~1 day or less. Well-understood, low-risk.
-- **M (Medium):** ~1-3 days. A standard, contained piece of work.
-- **L (Large):** **Must be split** into smaller, valuable S/M stories before becoming "Ready."
-
-### Hold in Refinement if...
-- The scope requires multiple, distinct changes.
-- The Acceptance Criteria are ambiguous or cannot be objectively verified.
-- There are blocking dependencies or significant technical unknowns.
-- The item is still sized as **L**.
+**Spike** *(time-boxed research; output is learning, not shippable code)*
+- [ ] **Question defined** — one clear question/hypothesis.
+- [ ] **Timebox agreed** — typically 2–4 hours.
+- [ ] **Deliverable stated** — short findings doc + recommendation and follow-up issues (if any).
