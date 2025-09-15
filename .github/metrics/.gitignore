@@ -1,11 +1,8 @@
-# Python
+# Python internals & local env
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-
-# Test files
-test_*.py
-test_*.svg
-test_*.md
+.venv/
+venv/

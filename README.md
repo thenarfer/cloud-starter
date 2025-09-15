@@ -148,11 +148,17 @@ Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichm
 
 **Recent Metrics**
 
-| Week | PRs | P50 | P90 |
-|------|-----|-----|-----|
-| No data | - | - | - |
+| Day | PRs | P50 | P90 |
+|-----|-----|-----|-----|
+| 2025-09-14 | 1 | 0.9h | 0.9h |
+| 2025-09-12 | 2 | 3.7h | 6.2h |
+| 2025-09-11 | 2 | 0.7h | 1.1h |
+| 2025-09-10 | 1 | 0.0h | 0.0h |
+| 2025-09-09 | 3 | 0.1h | 0.7h |
+| 2025-09-08 | 3 | 5.5h | 5.6h |
+| 2025-09-07 | 1 | 0.0h | 0.0h |
 
-*Table will be populated when PRs are merged*
+*Last updated: 2025-09-15 13:54 UTC*
 
 ---
 

@@ -33,6 +33,7 @@ jobs:
           python generate_metrics.py
       
       - name: Commit and push metrics
+        if: ${{ env.ACT != 'true' }}   # 👈 Skip push when running with act
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'

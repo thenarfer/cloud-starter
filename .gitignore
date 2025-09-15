@@ -1,7 +1,10 @@
 # Python
 __pycache__/
 *.pyc
-.venv/
+
+# Virtual environments (anywhere in repo)
+**/.venv/
+**/venv/
 
 # OS
 .DS_Store
@@ -45,3 +48,4 @@ dist/
 
 # Specific text files
 /all_code.txt
+.secrets
