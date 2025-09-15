@@ -140,6 +140,20 @@ Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichm
   * [Definition of Ready](docs/DoR.md)
   * [Definition of Done](docs/DoD.md)
 
+### Engineering Metrics
+
+**PR Lead Time (Weekly)**
+
+![PR Lead Time Chart](.github/metrics/pr_lead_time_chart.svg)
+
+**Recent Metrics**
+
+| Week | PRs | P50 | P90 |
+|------|-----|-----|-----|
+| No data | - | - | - |
+
+*Table will be populated when PRs are merged*
+
 ---
 
 ## Roadmap (high level)

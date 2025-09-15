@@ -1,0 +1,30 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .axis { stroke: #666; stroke-width: 1; }
+  .grid { stroke: #eee; stroke-width: 0.5; }
+  .p50-line { stroke: #2196F3; stroke-width: 2; fill: none; }
+  .p90-line { stroke: #FF9800; stroke-width: 2; fill: none; }
+  .text { font-family: Arial, sans-serif; font-size: 12px; fill: #333; }
+  .legend { font-family: Arial, sans-serif; font-size: 11px; }
+</style>
+<rect width="800" height="400" fill="white"/>
+<line x1="60" y1="60" x2="60" y2="340" class="grid"/>
+<line x1="60" y1="130" x2="740" y2="130" class="grid"/>
+<line x1="60" y1="200" x2="740" y2="200" class="grid"/>
+<line x1="60" y1="270" x2="740" y2="270" class="grid"/>
+<line x1="60" y1="340" x2="740" y2="340" class="grid"/>
+<line x1="60" y1="60" x2="60" y2="340" class="axis"/>
+<line x1="60" y1="340" x2="740" y2="340" class="axis"/>
+<text x="50" y="344" text-anchor="end" class="text">0h</text>
+<text x="50" y="274" text-anchor="end" class="text">11h</text>
+<text x="50" y="204" text-anchor="end" class="text">21h</text>
+<text x="50" y="134" text-anchor="end" class="text">32h</text>
+<text x="50" y="64" text-anchor="end" class="text">42h</text>
+<rect x="650" y="20" width="120" height="50" fill="white" stroke="#ccc"/>
+<line x1="660" y1="35" x2="680" y2="35" class="p50-line"/>
+<text x="685" y="39" class="legend">P50 (median)</text>
+<line x1="660" y1="55" x2="680" y2="55" class="p90-line"/>
+<text x="685" y="59" class="legend">P90</text>
+<text x="400" y="25" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PR Lead Time (Weekly)</text>
+<text x="400" y="380" text-anchor="middle" class="text">Metrics will be updated when PRs are merged</text>
+</svg>
