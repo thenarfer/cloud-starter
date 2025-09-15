@@ -3,59 +3,8 @@
 A transparent learning project to practice Product Ownership and disciplined delivery.  
 **Product Goal:** Enable developers to self-serve a few on-demand servers for tests within minutes.
 
----
-
-## Sprint 3 — Hardened Live Path & UX
-
-**Sprint Goal:** Harden the **live path** and improve **UX** for `spin`:  
-- Resolve latest AL2023 AMI via SSM  
-- Add bounded waiters for instance readiness  
-- Add human-friendly `--table` output for `up | status | down`  
-- Enrich `status` with **health** and **uptime**  
-- Add bounded waiter + summary for `down`
-
-### Scope (Committed P0s)
-
-- **`feat(up)`: resolve AL2023 AMI via SSM**  
-  - AMI resolved from SSM Parameter Store (`/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64`).  
-  - Fail fast with clear, actionable error if missing/unsupported.  
-  - Tested via moto + unit tests.
-
-- **`feat(up)`: bounded waiter + `--table` output**  
-  - After `up --apply`, wait until instances are **running** or **timeout (~90s)**.  
-  - Exit code non-zero on timeout with guidance.  
-  - Default output = JSON; with `--table`, print:  
-    ```
-    InstanceId | PublicIp | State | SpinGroup
-    ```
-
-- **`feat(status)`: health + uptime + `--table`**  
-  - `status` enriches with `health` (`OK | IMPAIRED | INITIALIZING | UNKNOWN`) and `uptime_min` (minutes since LaunchTime).  
-  - JSON remains default; `--table` prints:  
-    ```
-    InstanceId | State | Health | Uptime(min) | SpinGroup
-    ```
-
-- **`feat(down)`: table output**  
-  - Default JSON unchanged.  
-  - With `--table`, print:  
-    ```
-    InstanceId | State
-    ```
-
-- **`feat(down)`: bounded waiter + friendly summary**  
-  - After `down --apply`, wait until instances are **terminated** or **timeout (~90s)**.  
-  - Exit code non-zero on timeout with guidance.  
-  - JSON includes `"warning"` field if timeout.  
-  - Table output unchanged.
-
-### Non-goals (not in this sprint)
-
-- Multi-cloud (Azure/GCP), Terraform/IaC  
-- SSH/provisioners, IAM hardening  
-- Autoscaling, budgets/policies beyond basic teardown  
-- Monitoring/alerts  
-- Real instance lifecycle beyond the minimal demo  
+The `spin` CLI is functional and provides three basic commands: `up`, `status`, and `down`.  
+Dry-run is the default (safe), and live operations are explicitly guarded.
 
 ---
 
@@ -64,7 +13,7 @@ A transparent learning project to practice Product Ownership and disciplined del
 - Python **>= 3.11**
 - **Owner is required:** set `SPIN_OWNER` to your handle/email
 - Default region: **eu-north-1** (override with `SPIN_REGION` or `--region`)
-- For live calls (later): configure AWS credentials (`AWS_PROFILE` or `~/.aws`)
+- For live calls (optional): configure AWS credentials (`AWS_PROFILE` or `~/.aws`)
 
 ---
 
@@ -91,7 +40,7 @@ spin down --group demo --table
 
 **Notes**
 
-* With no `--apply` or without `SPIN_LIVE=1`, output is JSON previews and **no AWS calls** are made.
+* With no `--apply` or without `SPIN_LIVE=1`, output is JSON/table previews and **no AWS calls** are made.
 * `spin down` requires `--group` for destructive actions (override via `SPIN_ALLOW_GLOBAL_DOWN=1` only if you really mean it).
 
 ---
@@ -142,9 +91,49 @@ Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichm
 
 ---
 
-## Roadmap (high level)
+## Sprints = Milestones (templated, low-friction)
 
-* **Sprint 3 (this sprint):** AMI resolution, waiter, enriched status, table UX, down waiter/summary
+We plan the sprint in a **Sprint Plan Issue** (Issue Form), then **sync** it to a **Milestone** description with a comment command. This keeps milestones consistent without blocking any work.
+
+### 1) Create the Sprint Plan (Issue Form)
+
+* New issue → **Sprint Plan**.
+* Fill the form:
+
+  * **Milestone name (exact)** → e.g. `Sprint 5 — Hardening & UX (2025-09-15 → 2025-09-16)`
+  * **Start/End dates (YYYY-MM-DD)**
+  * **Sprint Goal**, **Scope (Committed P0s)**, *(optional)* **Stretch**, **Non-goals**, **Demo Script**, **Risks & Mitigations**, **Ways of Working**, **Done when**
+
+> The Issue is the **source of truth**; it gets labeled `sprint-plan`.
+
+### 2) Preview & publish to Milestone
+
+Comment on the Sprint Plan Issue:
+
+* **`/preview-sprint`** → renders the milestone description as a comment (no changes).
+* **`/sync-sprint`** → creates/updates the milestone:
+
+  * **Title** = the **Milestone name (exact)** from the form
+  * **Due date** = Sprint **End date** (23:59:59Z)
+  * **Description** = templated sections + backlink to the Sprint Plan Issue
+
+Re-running `/sync-sprint` is safe and idempotent.
+
+### 3) Assign work as usual
+
+* Assign issues to the sprint milestone manually (unchanged).
+* Merging PRs **does not require** being in a sprint milestone.
+
+### Optional automations
+
+* **Daily digest**: weekday summary comment on the Sprint Plan Issue (closed/total %, days left).
+* **Normalizer (warn-only)**: gentle reminder if the milestone description drifts from the plan.
+
+---
+
+## Roadmap
+
+We track work via **GitHub Milestones (Sprints)** and the **Project board**. Upcoming work is planned in Sprint Plan issues and published to milestones as needed.
 
 ---
 
