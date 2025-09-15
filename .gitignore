@@ -38,6 +38,7 @@ dist/
 
 # JetBrains
 .idea/
+package-lock.json
 *.iml
 
 # Artifacts
