@@ -1,0 +1,35 @@
+name: sprint-normalizer (warn-only)
+
+on:
+  schedule:
+    - cron: "30 06 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  warn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect drifts and warn
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const { data: milestones } = await github.rest.issues.listMilestones({ ...context.repo, state: 'open' });
+            for (const m of milestones) {
+              const match = (m.description||'').match(/<!-- sprint-plan-issue:(\d+) -->/);
+              if (!match) continue;
+              const issue_number = Number(match[1]);
+
+              // If description doesn't contain our standard sections, post a gentle warning.
+              const required = ['## Sprint Goal', '## Scope (Committed P0s)'];
+              const missing = required.filter(h => !m.description.includes(h));
+              if (missing.length) {
+                await github.rest.issues.createComment({
+                  ...context.repo, issue_number,
+                  body: `⚠️ Heads up: the milestone **${m.title}** description no longer matches the standard sections (${missing.join(', ')}). Consider running \`/sync-sprint\` again.`
+                });
+              }
+            }

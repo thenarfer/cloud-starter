@@ -1,0 +1,115 @@
+name: "Sprint Plan"
+description: "Create a structured sprint plan (this Issue will be the source of truth)"
+title: "Sprint <N> — <Short name> (<YYYY-MM-DD> → <YYYY-MM-DD>)"
+labels: ["sprint-plan"]
+body:
+  - type: input
+    id: milestone_name
+    attributes:
+      label: Milestone name (exact)
+      description: "Example: Sprint 5 — Hardening & UX (2025-09-15 → 2025-09-16)"
+      placeholder: "Sprint <N> — <Short name> (<YYYY-MM-DD> → <YYYY-MM-DD>)"
+    validations:
+      required: true
+
+  - type: input
+    id: start_date
+    attributes:
+      label: Start date (YYYY-MM-DD)
+      placeholder: "2025-09-15"
+    validations:
+      required: true
+
+  - type: input
+    id: end_date
+    attributes:
+      label: End date (YYYY-MM-DD)
+      placeholder: "2025-09-16"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sprint_goal
+    attributes:
+      label: Sprint Goal
+      description: "One concise, outcome-oriented paragraph."
+      placeholder: "Harden the live path and improve UX for spin..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope_committed
+    attributes:
+      label: Scope (Committed P0s)
+      description: "Bullet list. Reference issues with #id if they already exist."
+      placeholder: |
+        - #123 feat(up): resolve AL2023 AMI via SSM (S)
+          Acceptance:
+            - AMI resolved from SSM Parameter Store...
+        - #124 feat(up): bounded waiter + --table (S)
+          Acceptance:
+            - Wait until running or timeout (~90s)...
+    validations:
+      required: true
+
+  - type: textarea
+    id: stretch
+    attributes:
+      label: Stretch (P1s, optional)
+      placeholder: |
+        - #125 feat(status): health + uptime + --table (S)
+        - #126 feat(down): waiter + summary (XS)
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Out of Scope (Non-goals)
+      placeholder: |
+        - Multi-cloud
+        - IAM hardening
+        - Autoscaling
+
+  - type: textarea
+    id: demo_script
+    attributes:
+      label: Demo Script (what we will show)
+      render: shell
+      placeholder: |
+        python -m venv .venv && source .venv/bin/activate
+        pip install -e .[test]
+        export SPIN_OWNER=@yourhandle
+        spin up --count 1 --table
+        spin status --table
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks & Mitigations
+      placeholder: |
+        - Waiter flakiness (M) → bounded timeouts; clear guidance
+        - SSM drift (M) → explicit parameter name & tests
+
+  - type: textarea
+    id: ways_of_working
+    attributes:
+      label: Ways of Working
+      placeholder: |
+        - One issue → one PR; squash merge
+        - Use PR templates; include “Closes #<id>”
+
+  - type: textarea
+    id: done_when
+    attributes:
+      label: Done when (Definition of Done for this sprint)
+      placeholder: |
+        - All P0s merged via PR; CI green
+        - Demo script runs end-to-end
+        - Board tidy (milestone complete or only carries stretch)
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: "I understand we’ll sync this Issue into the milestone description via /sync-sprint."
+          required: true
