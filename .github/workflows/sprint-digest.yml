@@ -26,6 +26,18 @@ jobs:
               const issueNum = Number((m.description.match(/<!-- sprint-plan-issue:(\d+) -->/)||[])[1]);
               if (!issueNum) continue;
 
+              const today = new Date();
+              const due = m.due_on ? new Date(m.due_on) : null;
+              const daysLeft = due ? Math.max(0, Math.ceil((due - today) / 86400000)) : null;
+              const body = [
+                `**Daily Sprint Digest – ${m.title}**`,
+                `- Window: ${m.due_on ? '(ends ' + m.due_on.substring(0,10) + ')' : '(no due date)'}`,
+                `${daysLeft !== null ? '- Days left: ' + daysLeft : ''}`,
+                `- Issues: ${closedCount}/${total} closed (${pct}%)`,
+                ``,
+                `_Milestone_: ${m.title}`
+              ].join('\n');
+
               // Gather issue stats in this milestone
               const perPage = 100;
               let page = 1, openCount = 0, closedCount = 0, lines = [];
