@@ -1,0 +1,72 @@
+name: sprint-digest
+
+on:
+  schedule:
+    - cron: "0 06 * * 1-5"  # 06:00 UTC ≈ 08:00 Oslo most of the year
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post digest to sprint plan issue(s)
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          result-encoding: string
+          script: |
+            // Find open milestones that were synced by this workflow
+            const { data: milestones } = await github.rest.issues.listMilestones({ ...context.repo, state: 'open' });
+            const targets = milestones.filter(m => (m.description||'').includes('<!-- sprint-plan-issue:'));
+
+            for (const m of targets) {
+              const issueNum = Number((m.description.match(/<!-- sprint-plan-issue:(\d+) -->/)||[])[1]);
+              if (!issueNum) continue;
+
+              const today = new Date();
+              const due = m.due_on ? new Date(m.due_on) : null;
+              const daysLeft = due ? Math.max(0, Math.ceil((due - today) / 86400000)) : null;
+              const body = [
+                `**Daily Sprint Digest – ${m.title}**`,
+                `- Window: ${m.due_on ? '(ends ' + m.due_on.substring(0,10) + ')' : '(no due date)'}`,
+                `${daysLeft !== null ? '- Days left: ' + daysLeft : ''}`,
+                `- Issues: ${closedCount}/${total} closed (${pct}%)`,
+                ``,
+                `_Milestone_: ${m.title}`
+              ].join('\n');
+
+              // Gather issue stats in this milestone
+              const perPage = 100;
+              let page = 1, openCount = 0, closedCount = 0, lines = [];
+              while (page < 100) {
+                const { data: issues } = await github.rest.issues.listForRepo({
+                  ...context.repo,
+                  milestone: m.number,
+                  state: 'all',
+                  per_page: perPage,
+                  page
+                });
+                if (!issues.length) break;
+                for (const is of issues) {
+                  if (is.pull_request) continue; // issues only
+                  if (is.state === 'open') openCount++; else closedCount++;
+                }
+                page++;
+              }
+
+              const total = openCount + closedCount;
+              const pct = total ? Math.round((closedCount / total) * 100) : 0;
+
+              const body = [
+                `**Daily Sprint Digest – ${m.title}**`,
+                `- Window: ${m.due_on ? '(ends ' + m.due_on.substring(0,10) + ')' : ''}`,
+                `- Issues: ${closedCount}/${total} closed (${pct}%)`,
+                ``,
+                `_Milestone_: ${m.title}`
+              ].join('\n');
+
+              await github.rest.issues.createComment({ ...context.repo, issue_number: issueNum, body });
+            }

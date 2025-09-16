@@ -1,0 +1,264 @@
+name: sprint-sync
+
+on:
+  issue_comment:
+    types: [created, edited]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Sprint Plan issue number to sync"
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: sprint-sync-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  handle:
+    # Run on: manual dispatch OR comments on an Issue labeled sprint-plan
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue && contains(github.event.issue.labels.*.name, 'sprint-plan')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on command
+        id: gate
+        env:
+          BODY: ${{ github.event.comment.body }}
+          EVT:  ${{ github.event_name }}
+        run: |
+          if [ "$EVT" = "workflow_dispatch" ]; then
+            echo "cmd=/sync-sprint" >> "$GITHUB_OUTPUT"
+            echo "issue_number=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Trim leading whitespace; only accept commands at the start of the comment
+          b="$(printf '%s' "$BODY" | sed -E 's/^[[:space:]]+//')"
+          lb="$(printf '%s' "$b" | tr '[:upper:]' '[:lower:]')"
+
+          case "$lb" in
+            /help-sprint*)    echo "cmd=/help-sprint"    >> "$GITHUB_OUTPUT" ;;
+            /preview-sprint*) echo "cmd=/preview-sprint" >> "$GITHUB_OUTPUT" ;;
+            /sync-sprint*)    echo "cmd=/sync-sprint"    >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "cmd=" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+      - name: Process command
+        if: ${{ steps.gate.outputs.cmd != '' }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const cmdOut = '${{ steps.gate.outputs.cmd }}';
+            const dispatchedNum = '${{ steps.gate.outputs.issue_number || inputs.issue_number }}';
+            const issue_number = Number(dispatchedNum) || (context.payload.issue && context.payload.issue.number) || context.issue.number;
+
+            // Permission check (write+)
+            try {
+              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: context.actor
+              });
+              if (!['admin','maintain','write'].includes(perm.permission)) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number,
+                  body: `⛔ Only collaborators with write access can run \`${cmdOut}\`.`
+                });
+                core.info(`Actor ${context.actor} has ${perm.permission}; skipping.`);
+                return;
+              }
+            } catch (e) {
+              core.warning(`Permission lookup failed: ${e?.message || e}`);
+            }
+
+            // Load the Sprint Plan issue
+            const { data: issue } = await github.rest.issues.get({ ...context.repo, issue_number });
+
+            // ---------------- Helpers ----------------
+            // Build a map of sections from the Sprint Plan Issue body.
+            // - Keys are lowercased heading text after "###"
+            // - Ignores headings found inside fenced code blocks (``` or ~~~)
+            function buildSections(body) {
+              const sections = {};
+              const lines = String(body || '').replace(/\r\n/g, '\n').split('\n');
+
+              let inFence = false;
+              let fenceChar = null; // '`' or '~'
+              let currentKey = null;
+              let buf = [];
+
+              const flush = () => {
+                if (currentKey) sections[currentKey] = buf.join('\n').trim();
+                buf = [];
+              };
+
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // fenced code block start/end
+                const fence = line.match(/^\s*(`{3,}|~{3,})\s*\w*\s*$/);
+                if (fence) {
+                  const c = fence[1][0];
+                  if (!inFence) {
+                    inFence = true;
+                    fenceChar = c;
+                  } else if (c === fenceChar) {
+                    inFence = false;
+                    fenceChar = null;
+                  }
+                  buf.push(line);
+                  continue;
+                }
+
+                // Outside fences: a "### Heading" starts a new section
+                if (!inFence) {
+                  const h = line.match(/^\s*###\s*(.+?)\s*$/);
+                  if (h) {
+                    flush();
+                    currentKey = h[1].trim().toLowerCase();
+                    // Skip blank lines immediately after the heading
+                    while (i + 1 < lines.length && lines[i + 1].trim() === '') i++;
+                    continue;
+                  }
+                }
+
+                buf.push(line);
+              }
+
+              flush();
+              return sections;
+            }
+
+            const sections = buildSections(issue.body || '');
+
+            function pick(label, fallback = '') {
+              return sections[(label || '').toLowerCase()] ?? fallback;
+            }
+
+            function renderDemo(text) {
+              const t = (text || '').trim();
+              if (!t) return '';
+              // Already a single fenced block? Keep as-is.
+              if (/^```[a-zA-Z0-9_-]*\n[\s\S]*\n```$/.test(t)) return t;
+              // Contains inner backticks? Wrap with 4-backtick fences.
+              if (t.includes('```')) return '````\n' + t + '\n````';
+              // Default: bash fence
+              return '```bash\n' + t + '\n```';
+            }
+            // -----------------------------------------
+
+            // Extract fields (labels match the Issue Form)
+            const milestoneName = pick('Milestone name (exact)');
+            const startDate     = pick('Start date (YYYY-MM-DD)');
+            const endDate       = pick('End date (YYYY-MM-DD)');
+            const goal          = pick('Sprint Goal');
+            const scope         = pick('Scope (Committed P0s)');
+            const stretch       = pick('Stretch (P1s, optional)');
+            const nonGoals      = pick('Out of Scope (Non-goals)');
+            const demo          = pick('Demo Script (what we will show)');
+            const risks         = pick('Risks & Mitigations');
+            const wow           = pick('Ways of Working');
+            const doneWhen      = pick('Done when (Definition of Done for this sprint)');
+
+            // Validate
+            const dateRx = /^\d{4}-\d{2}-\d{2}$/;
+            const datesOk = dateRx.test(startDate) && dateRx.test(endDate);
+            if (!milestoneName || !startDate || !endDate || !goal || !scope || !datesOk) {
+              const msg = 'Missing required fields or bad dates. Need: Milestone name, YYYY-MM-DD dates, Sprint Goal, Scope.';
+              if (cmdOut === '/sync-sprint') {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number,
+                  body: `⚠️ ${msg}`
+                });
+              }
+              core.setFailed(msg);
+              return;
+            }
+
+            // Compose milestone description
+            const header =
+              `# ${milestoneName}\n\n` +
+              `**Window:** ${startDate} → ${endDate}\n\n` +
+              `**Source plan:** #${issue.number}\n` +
+              `<!-- sprint-plan-issue:${issue.number} -->`;
+
+            const parts = [
+              ['## Sprint Goal', goal],
+              ['## Scope (Committed P0s)', scope],
+              ...(stretch  ? [['## Stretch', stretch]] : []),
+              ...(nonGoals ? [['## Out of Scope (Non-goals)', nonGoals]] : []),
+              ...(demo     ? [['## Demo Script', renderDemo(demo)]] : []),
+              ...(risks    ? [['## Risks & Mitigations', risks]] : []),
+              ...(wow      ? [['## Ways of Working', wow]] : []),
+              ...(doneWhen ? [['## Done when', doneWhen]] : []),
+            ];
+
+            const rendered = [header, ...parts.map(([h, b]) => `${h}\n\n${b}`)].join('\n\n');
+
+            // Commands
+            if (cmdOut === '/help-sprint') {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number,
+                body: [
+                  '**Sprint commands**',
+                  '- `/preview-sprint` – render a preview of the milestone description',
+                  '- `/sync-sprint` – create/update the milestone with this description',
+                  '',
+                  '_Milestone title & dates come from the form fields; this Issue remains the source of truth._'
+                ].join('\n')
+              });
+              return;
+            }
+
+            if (cmdOut === '/preview-sprint') {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number,
+                body: `<details><summary>Milestone preview for <strong>${milestoneName}</strong></summary>\n\n${rendered}\n\n</details>`
+              });
+              return;
+            }
+
+            // /sync-sprint
+            const { data: milestones } = await github.rest.issues.listMilestones({
+              ...context.repo,
+              state: 'all'
+            });
+            let milestone = milestones.find(m => m.title === milestoneName);
+            const dueOn = new Date(endDate + 'T23:59:59Z').toISOString();
+
+            if (!milestone) {
+              const created = await github.rest.issues.createMilestone({
+                ...context.repo,
+                title: milestoneName,
+                description: rendered,
+                due_on: dueOn
+              });
+              milestone = created.data;
+            } else {
+              await github.rest.issues.updateMilestone({
+                ...context.repo,
+                milestone_number: milestone.number,
+                title: milestoneName,
+                description: rendered,
+                due_on: dueOn,
+                state: 'open'
+              });
+            }
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number,
+              body: `✅ Synced to milestone **${milestone.title}** (due ${endDate}).`
+            });
