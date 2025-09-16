@@ -41,7 +41,7 @@ jobs:
               // Gather issue stats in this milestone
               const perPage = 100;
               let page = 1, openCount = 0, closedCount = 0, lines = [];
-              while (true) {
+              while (page < 100) {
                 const { data: issues } = await github.rest.issues.listForRepo({
                   ...context.repo,
                   milestone: m.number,
