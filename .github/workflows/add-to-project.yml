@@ -8,10 +8,8 @@ jobs:
   add:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v1
+      - name: Add to project
+        uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/users/thenarfer/projects/1
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # If you have a “Status” field in the project:
-          fields: |
-            Status=Backlog
+          github-token: ${{ secrets.PROJECT_TOKEN }} # PAT with repo + project scopes
