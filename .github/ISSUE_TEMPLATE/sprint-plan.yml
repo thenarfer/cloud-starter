@@ -19,6 +19,9 @@ body:
       placeholder: "2025-09-15"
     validations:
       required: true
+projects:
+  - url: https://github.com/users/thenarfer/projects/1
+    workflow: .github/workflows/add-to-project.yml
 
   - type: input
     id: end_date
