@@ -24,6 +24,9 @@ body:
         - Other
     validations:
       required: false
+projects:
+  - url: https://github.com/users/thenarfer/projects/1
+    workflow: .github/workflows/add-to-project.yml
 
   - type: textarea
     id: problem
