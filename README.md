@@ -89,6 +89,26 @@ Tests cover dry-run behavior, waiter paths, table outputs, health/uptime enrichm
   * [Definition of Ready](docs/DoR.md)
   * [Definition of Done](docs/DoD.md)
 
+### Engineering Metrics
+
+**PR Lead Time (Weekly)**
+
+![PR Lead Time Chart](.github/metrics/pr_lead_time_chart.svg)
+
+**Recent Metrics**
+
+| Day | PRs | P50 | P90 |
+|-----|-----|-----|-----|
+| 2025-09-14 | 1 | 0.9h | 0.9h |
+| 2025-09-12 | 2 | 3.7h | 6.2h |
+| 2025-09-11 | 2 | 0.7h | 1.1h |
+| 2025-09-10 | 1 | 0.0h | 0.0h |
+| 2025-09-09 | 3 | 0.1h | 0.7h |
+| 2025-09-08 | 3 | 5.5h | 5.6h |
+| 2025-09-07 | 1 | 0.0h | 0.0h |
+
+*Last updated: 2025-09-15 13:54 UTC*
+
 ---
 
 ## Sprints = Milestones (templated, low-friction)

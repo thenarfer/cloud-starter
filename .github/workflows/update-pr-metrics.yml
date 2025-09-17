@@ -1,0 +1,57 @@
+name: Update PR Metrics
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:  # Allow manual trigger for testing
+
+permissions:
+  contents: write  # Need write permission to commit back to repo
+
+jobs:
+  update-metrics:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Generate PR metrics
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd .github/metrics
+          python generate_metrics.py
+      
+      - name: Commit and push metrics
+        if: ${{ env.ACT != 'true' }}   # 👈 Skip push when running with act
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Add generated files
+          git add .github/metrics/pr_lead_time_chart.svg
+          git add .github/metrics/pr_lead_time_table.md
+          git add .github/metrics/pr_lead_time_data.json
+          git add README.md
+          
+          # Only commit if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(metrics): update PR lead time metrics
+            
+            Auto-generated metrics update from PR merge.
+            
+            Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+            git push
+          else
+            echo "No changes to commit"
+          fi

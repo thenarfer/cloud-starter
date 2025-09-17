@@ -1,7 +1,10 @@
 # Python
 __pycache__/
 *.pyc
-.venv/
+
+# Virtual environments (anywhere in repo)
+**/.venv/
+**/venv/
 
 # OS
 .DS_Store
@@ -46,3 +49,4 @@ package-lock.json
 
 # Specific text files
 /all_code.txt
+.secrets

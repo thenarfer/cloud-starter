@@ -1,0 +1,42 @@
+<svg width="900" height="420" xmlns="http://www.w3.org/2000/svg">
+<style>
+.axis{stroke:#666;stroke-width:1}
+.grid{stroke:#eee;stroke-width:.5}
+.p50-line{stroke:#2196F3;stroke-width:1;fill:none;opacity:0.5}
+.p90-line{stroke:#FF9800;stroke-width:1;fill:none;opacity:0.5}
+.p50-roll{stroke:#0D47A1;stroke-width:2;fill:none}
+.p90-roll{stroke:#E65100;stroke-width:2;fill:none}
+.text{font-family:Arial,sans-serif;font-size:12px;fill:#333}
+.legend{font-family:Arial,sans-serif;font-size:11px}
+</style>
+<rect width="900" height="420" fill="white"/>
+<line x1="60" y1="60.0" x2="840" y2="60.0" class="grid"/>
+<line x1="60" y1="135.0" x2="840" y2="135.0" class="grid"/>
+<line x1="60" y1="210.0" x2="840" y2="210.0" class="grid"/>
+<line x1="60" y1="285.0" x2="840" y2="285.0" class="grid"/>
+<line x1="60" y1="360.0" x2="840" y2="360.0" class="grid"/>
+<line x1="60" y1="60" x2="60" y2="360" class="axis"/>
+<line x1="60" y1="360" x2="840" y2="360" class="axis"/>
+<text x="50" y="364.0" text-anchor="end" class="text">0h</text>
+<text x="50" y="289.0" text-anchor="end" class="text">2h</text>
+<text x="50" y="214.0" text-anchor="end" class="text">3h</text>
+<text x="50" y="139.0" text-anchor="end" class="text">5h</text>
+<text x="50" y="64.0" text-anchor="end" class="text">6h</text>
+<polyline points="60.0,355.16129032258067 157.5,326.1290322580645 255.0,360.0 352.5,93.87096774193549 450.0,355.16129032258067 547.5,360.0 645.0,326.1290322580645 742.5,180.96774193548387 840.0,316.4516129032258" class="p50-line"/>
+<polyline points="60.0,355.16129032258067 157.5,326.1290322580645 255.0,360.0 352.5,89.03225806451616 450.0,326.1290322580645 547.5,360.0 645.0,306.7741935483871 742.5,60.0 840.0,316.4516129032258" class="p90-line"/>
+<polyline points="60.0,355.16129032258067 157.5,340.64516129032256 255.0,355.16129032258067 352.5,340.64516129032256 450.0,355.16129032258067 547.5,355.16129032258067 645.0,355.16129032258067 742.5,326.1290322580645 840.0,326.1290322580645" class="p50-roll"/>
+<polyline points="60.0,355.16129032258067 157.5,340.64516129032256 255.0,355.16129032258067 352.5,340.64516129032256 450.0,326.1290322580645 547.5,340.64516129032256 645.0,326.1290322580645 742.5,326.1290322580645 840.0,316.4516129032258" class="p90-roll"/>
+<rect x="720" y="20" width="160" height="70" fill="white" stroke="#ccc"/>
+<line x1="730" y1="35" x2="750" y2="35" class="p50-line"/>
+<text x="755" y="39" class="legend">P50 daily</text>
+<line x1="730" y1="55" x2="750" y2="55" class="p50-roll"/>
+<text x="755" y="59" class="legend">P50 7d median</text>
+<line x1="730" y1="75" x2="750" y2="75" class="p90-line"/>
+<text x="755" y="79" class="legend">P90 daily</text>
+<line x1="730" y1="95" x2="750" y2="95" class="p90-roll"/>
+<text x="755" y="99" class="legend">P90 7d median</text>
+<text x="450" y="25" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">PR Lead Time (Daily + 7d median)</text>
+<text x="60.0" y="378" text-anchor="middle" class="text">09/03</text>
+<text x="352.5" y="378" text-anchor="middle" class="text">09/08</text>
+<text x="645.0" y="378" text-anchor="middle" class="text">09/11</text>
+</svg>

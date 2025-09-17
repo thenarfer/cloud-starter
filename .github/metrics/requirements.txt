@@ -1,0 +1,10 @@
+# No external dependencies required for metrics generation
+# The script uses only Python built-in libraries:
+# - json
+# - urllib 
+# - datetime
+# - statistics
+# - math
+# - os
+# - sys
+# - re
