@@ -39,5 +39,4 @@ body:
         - label: Affects live run
         - label: Data/cost risk
 projects:
-  - url: https://github.com/users/thenarfer/projects/1
-    workflow: .github/workflows/add-to-project.yml
+  - thenarfer/1

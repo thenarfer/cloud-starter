@@ -24,9 +24,6 @@ body:
         - Other
     validations:
       required: false
-projects:
-  - url: https://github.com/users/thenarfer/projects/1
-    workflow: .github/workflows/add-to-project.yml
 
   - type: textarea
     id: problem
@@ -105,3 +102,5 @@ projects:
           required: true
         - label: NFRs reviewed (or N/A)
           required: true
+projects:
+  - thenarfer/1

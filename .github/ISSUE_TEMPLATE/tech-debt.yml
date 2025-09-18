@@ -22,10 +22,7 @@ body:
         - Other
     validations:
       required: false
-projects:
-  - url: https://github.com/users/thenarfer/projects/1
-    workflow: .github/workflows/add-to-project.yml
-
+      
   - type: dropdown
     id: debt_type
     attributes:
@@ -77,3 +74,5 @@ projects:
           required: true
         - label: Scope small enough for a single PR (or clearly chunked)
           required: true
+projects:
+  - thenarfer/1
