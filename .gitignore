@@ -46,3 +46,9 @@ package-lock.json
 
 # Specific text files
 /all_code.txt
+
+# Local tooling
+.secrets
+.act-event.json
+.act-issue-event.json
+.github/metrics/
