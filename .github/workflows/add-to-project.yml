@@ -34,11 +34,12 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0 pinned
         with:
           result-encoding: string
+          github-token: ${{ github.token }}
           script: |
             const manual = context.eventName === 'workflow_dispatch';
             let number = manual ? Number(core.getInput('issue_number'))
                                 : (context.payload.issue && context.payload.issue.number);
-            if (!number) {
+            if (!number || Number.isNaN(number)) {
               core.setFailed('Missing issue_number (required for workflow_dispatch).');
               return;
             }
