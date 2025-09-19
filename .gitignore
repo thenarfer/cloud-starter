@@ -51,4 +51,3 @@ package-lock.json
 .secrets
 .act-event.json
 .act-issue-event.json
-.github/metrics/
