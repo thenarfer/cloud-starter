@@ -46,3 +46,11 @@ package-lock.json
 
 # Specific text files
 /all_code.txt
+
+# Local tooling
+/.secrets
+/.secrets/
+/.act-*.json
+/.actrc
+/.act/
+.act-issue-event.json
