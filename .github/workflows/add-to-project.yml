@@ -24,6 +24,8 @@ jobs:
         run: |
           if [ -z "${{ secrets.PROJECT_TOKEN }}" ]; then
             echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Resolve target issue/content id
