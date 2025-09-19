@@ -73,13 +73,16 @@ body:
     id: demo_script
     attributes:
       label: Demo Script (what we will show)
-      render: shell
+      description: "Use Markdown (code blocks, lists, headings) to structure your demo script clearly."
+      render: markdown
       placeholder: |
+        ```bash
         python -m venv .venv && source .venv/bin/activate
         pip install -e .[test]
         export SPIN_OWNER=@yourhandle
         spin up --count 1 --table
         spin status --table
+        ```
 
   - type: textarea
     id: risks
