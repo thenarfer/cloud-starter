@@ -3,13 +3,76 @@ name: Add issues to project
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to (re)sync into the project"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   add:
     runs-on: ubuntu-latest
+
     steps:
+      - name: "Guard: PROJECT_TOKEN present?"
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_TOKEN }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve target issue/content id
+        id: target
+        if: always()
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0 pinned
+        with:
+          result-encoding: string
+          github-token: ${{ github.token }}
+          script: |
+            const manual = context.eventName === 'workflow_dispatch';
+            let number = manual ? Number(core.getInput('issue_number'))
+                                : (context.payload.issue && context.payload.issue.number);
+            if (!number || Number.isNaN(number)) {
+              core.setFailed('Missing issue_number (required for workflow_dispatch).');
+              return;
+            }
+            const { data: issue } = await github.rest.issues.get({ ...context.repo, issue_number: number });
+            core.setOutput('issue_number', String(number));
+            core.setOutput('content_id', issue.node_id);
+
+      - name: Inform when PROJECT_TOKEN is missing
+        if: steps.guard.outputs.missing == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0 pinned
+        with:
+          script: |
+            const issue_number = Number('${{ steps.target.outputs.issue_number || 0 }}');
+            if (!issue_number) { core.info('No issue number; skipping comment.'); return; }
+            const body = [
+              "⚠️ Project auto-add skipped: missing `PROJECT_TOKEN` secret.",
+              "",
+              "Create a **Personal Access Token (classic)** with scopes **`repo`** + **`project`**",
+              "and add it as a repository secret named **`PROJECT_TOKEN`**.",
+              "",
+              "Docs: ",
+              "- PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token",
+              "- Repo secrets: https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository"
+            ].join("\n");
+            const { data: comments } = await github.rest.issues.listComments({ ...context.repo, issue_number, per_page: 100 });
+            const seen = comments.some(c => c.body?.includes('Project auto-add skipped: missing `PROJECT_TOKEN`'));
+            if (seen) { core.info('Notice already present; skipping.'); return; }
+            await github.rest.issues.createComment({ ...context.repo, issue_number, body });
+
       - name: Add to project
-        uses: actions/add-to-project@v0.5.0
+        if: steps.guard.outputs.missing != 'true' && steps.target.outputs.content_id != ''
+        uses: actions/add-to-project@31b3f3ccdc584546fc445612dec3f38ff5edb41c # v0.5.0 pinned
         with:
           project-url: https://github.com/users/thenarfer/projects/1
-          github-token: ${{ secrets.PROJECT_TOKEN }} # PAT with repo + project scopes
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          content-id: ${{ steps.target.outputs.content_id }}
