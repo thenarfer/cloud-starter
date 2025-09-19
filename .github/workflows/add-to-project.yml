@@ -69,3 +69,4 @@ jobs:
         with:
           project-url: https://github.com/users/thenarfer/projects/1
           github-token: ${{ secrets.PROJECT_TOKEN }}
+          content-id: ${{ steps.target.outputs.content_id }}
